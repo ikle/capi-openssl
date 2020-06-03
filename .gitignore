@@ -3,4 +3,8 @@
 *.so.*
 *.pc
 *.swp
+
 *-test
+*.crt
+*.key
+*.pem
