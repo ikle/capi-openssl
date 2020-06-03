@@ -17,4 +17,6 @@ char *str_printf    (const char *fmt, ...);
 FILE *file_open_va (const char *mode, const char *fmt, va_list ap);
 FILE *file_open    (const char *mode, const char *fmt, ...);
 
+void capi_dump (FILE *to, const char *prefix, const void *data, size_t size);
+
 #endif  /* CAPI_MISC_H */

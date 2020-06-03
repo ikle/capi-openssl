@@ -82,3 +82,16 @@ FILE *file_open (const char *mode, const char *fmt, ...)
 
 	return f;
 }
+
+void capi_dump (FILE *to, const char *prefix, const void *data, size_t size)
+{
+	const unsigned char *p;
+	size_t i;
+
+	fputs (prefix, to);
+
+	for (p = data, i = 0; i < size; ++i)
+		printf ("%02x", p[i]);
+
+	putc ('\n', to);
+}
