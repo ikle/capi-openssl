@@ -9,23 +9,7 @@
 #include <stdio.h>
 #include <capi/hash.h>
 
-static void show_hex (const char *prefix, const char *suffix,
-		      const void *data, size_t count, int rev)
-{
-	const unsigned char *p;
-	size_t i;
-
-	fputs (prefix, stdout);
-
-	if (rev)
-		for (p = data; count > 0; --count)
-			printf ("%02x", p[count - 1]);
-	else
-		for (p = data, i = 0; i < count; ++i)
-			printf ("%02x", p[i]);
-
-	fputs (suffix, stdout);
-}
+#include "misc.h"
 
 int main (int argc, char *argv[])
 {
@@ -57,7 +41,6 @@ int main (int argc, char *argv[])
 	capi_hash_free (h);
 	capi_free (o);
 
-	show_hex ("BE digest = ", "\n", buf, count, 0);
-	show_hex ("LE digest = ", "\n", buf, count, 1);
+	capi_dump (stdout, "md = ", buf, count);
 	return 0;
 }
