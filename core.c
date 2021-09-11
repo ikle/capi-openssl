@@ -24,10 +24,6 @@ struct capi {
 	const char *name;  /* key storage name */
 	EVP_PKEY *key;
 	STACK_OF (X509) *chain;
-
-	const char *cadir;
-	X509_STORE *store;
-	X509_STORE_CTX *store_c;
 };
 
 static FILE *capi_open_key (struct capi *o)
@@ -114,10 +110,6 @@ struct capi *capi_alloc (const char *prov, const char *store, const char *name)
 	o->key  = NULL;
 	o->chain = NULL;
 
-	o->cadir = store;
-	o->store = NULL;
-	o->store_c = NULL;
-
 	if (name != NULL && (o->key = load_key (o)) == NULL)
 		goto no_key;
 
@@ -132,8 +124,6 @@ void capi_free (struct capi *o)
 	if (o == NULL)
 		return;
 
-	X509_STORE_CTX_free (o->store_c);
-	X509_STORE_free (o->store);
 	sk_X509_pop_free (o->chain, X509_free);
 	EVP_PKEY_free (o->key);
 	free (o);
@@ -179,64 +169,4 @@ int capi_read_cert (struct capi *o, int i, void *data, size_t len)
 		return n;
 
 	return i2d_X509 (cert, &p);
-}
-
-static X509_STORE *ossl_store_alloc (const char *name)
-{
-	X509_STORE *o;
-	int status;
-
-	if ((o = X509_STORE_new ()) == NULL)
-		return NULL;
-
-	status = name == NULL ? X509_STORE_set_default_paths (o) :
-				X509_STORE_load_locations (o, NULL, name);
-	if (!status)
-		goto no_paths;
-
-	return o;
-no_paths:
-	X509_STORE_free (o);
-	return NULL;
-}
-
-static int verify_cert (struct capi *o, X509 *cert, STACK_OF (X509) *chain)
-{
-	if (o->store_c == NULL) {
-		if (o->store == NULL &&
-		    (o->store = ossl_store_alloc (o->cadir)) == NULL)
-			return 0;
-
-		if ((o->store_c = X509_STORE_CTX_new ()) == NULL)
-			return 0;
-	}
-	else
-		X509_STORE_CTX_cleanup (o->store_c);
-
-	if (!X509_STORE_CTX_init (o->store_c, o->store, cert, chain))
-		return 0;
-
-	return X509_verify_cert (o->store_c);
-}
-
-int capi_push_cert (struct capi *o, const void *data, size_t len)
-{
-	STACK_OF (X509) *chain;
-	const unsigned char *p = data;
-	X509 *cert;
-
-	if ((chain = (void *) capi_get_cert (o)) == NULL)
-		return 0;
-
-	if ((cert = d2i_X509 (NULL, &p, len)) == NULL)
-		return 0;
-
-	if (!verify_cert (o, cert, chain))
-		goto error;
-
-	if (sk_X509_push (chain, cert))
-		return 1;
-error:
-	X509_free (cert);
-	return 0;
 }

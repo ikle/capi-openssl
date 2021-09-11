@@ -32,6 +32,5 @@ const struct capi_key  *capi_get_key  (struct capi *o);
 const struct capi_cert *capi_get_cert (struct capi *o);
 
 int capi_read_cert (struct capi *o, int i, void *data, size_t len);
-int capi_push_cert (struct capi *o, const void *data, size_t len);
 
 #endif  /* CAPI_CORE_H */
