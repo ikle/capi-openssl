@@ -15,9 +15,6 @@
  * Argument prov represents the cryptographic provider to use; if it is
  * NULL, then the default provider is used.
  *
- * Argument store represents the name of the trusted certificate store;
- * if it is NULL, then the system store is used.
- *
  * Argument name represents the name of the key container; if it is NULL,
  * then a temporary container is used.
  *
@@ -25,7 +22,7 @@
  * frees the cryptographic context.
  */
 
-struct capi *capi_alloc (const char *prov, const char *store, const char *name);
+struct capi *capi_alloc (const char *prov, const char *name);
 void capi_free (struct capi *o);
 
 const struct capi_key  *capi_get_key  (struct capi *o);

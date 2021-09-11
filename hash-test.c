@@ -24,7 +24,7 @@ int main (int argc, char *argv[])
 		return 1;
 	}
 
-	if ((o = capi_alloc (NULL, NULL, NULL)) == NULL) {
+	if ((o = capi_alloc (NULL, NULL)) == NULL) {
 		fprintf (stderr, "E: cannot allocate CAPI context\n");
 		return 1;
 	}
