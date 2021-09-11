@@ -12,6 +12,6 @@
 #include <stddef.h>
 
 struct capi_store *capi_store_alloc (const char *name);
-void capi_store_free (struct capi_store *store);
+void capi_store_free (struct capi_store *o);
 
 #endif  /* CAPI_STORE_H */
