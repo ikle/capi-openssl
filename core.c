@@ -222,8 +222,8 @@ static int verify_cert (struct capi *o, X509 *cert, STACK_OF (X509) *chain)
 int capi_push_cert (struct capi *o, const void *data, size_t len)
 {
 	STACK_OF (X509) *chain;
-	X509 *cert;
 	const unsigned char *p = data;
+	X509 *cert;
 
 	if ((chain = (void *) capi_get_cert (o)) == NULL)
 		return 0;
