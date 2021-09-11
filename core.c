@@ -25,6 +25,8 @@ struct capi {
 	const char *name;  /* key storage name */
 	EVP_PKEY *key;
 	STACK_OF (X509) *chain;
+
+	const char *cadir;
 	struct capi_store *store;
 	X509_STORE_CTX *store_c;
 };
@@ -95,7 +97,7 @@ no_chain:
 	return NULL;
 }
 
-struct capi *capi_alloc (const char *prov, const char *name)
+struct capi *capi_alloc (const char *prov, const char *store, const char *name)
 {
 	struct capi *o;
 
@@ -112,6 +114,8 @@ struct capi *capi_alloc (const char *prov, const char *name)
 	o->name = name;
 	o->key  = NULL;
 	o->chain = NULL;
+
+	o->cadir = store;
 	o->store = NULL;
 	o->store_c = NULL;
 
@@ -189,7 +193,7 @@ static int verify_cert (struct capi *o, X509 *cert, STACK_OF (X509) *chain)
 
 	if (o->store_c == NULL) {
 		if (o->store == NULL &&
-		    (o->store = capi_store_alloc (NULL)) == NULL)
+		    (o->store = capi_store_alloc (o->cadir)) == NULL)
 			return 0;
 
 		if ((o->store_c = X509_STORE_CTX_new ()) == NULL)
