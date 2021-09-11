@@ -17,7 +17,6 @@
 #include <openssl/x509.h>
 
 #include <capi/core.h>
-#include <capi/store.h>
 
 #include "misc.h"
 
@@ -27,7 +26,7 @@ struct capi {
 	STACK_OF (X509) *chain;
 
 	const char *cadir;
-	struct capi_store *store;
+	X509_STORE *store;
 	X509_STORE_CTX *store_c;
 };
 
@@ -134,7 +133,7 @@ void capi_free (struct capi *o)
 		return;
 
 	X509_STORE_CTX_free (o->store_c);
-	capi_store_free (o->store);
+	X509_STORE_free (o->store);
 	sk_X509_pop_free (o->chain, X509_free);
 	EVP_PKEY_free (o->key);
 	free (o);
@@ -187,13 +186,30 @@ int capi_read_cert (struct capi *o, int i, void *data, size_t len)
 	return i2d_X509 (cert, &p);
 }
 
+static X509_STORE *ossl_store_alloc (const char *name)
+{
+	X509_STORE *o;
+	int status;
+
+	if ((o = X509_STORE_new ()) == NULL)
+		return NULL;
+
+	status = name == NULL ? X509_STORE_set_default_paths (o) :
+				X509_STORE_load_locations (o, NULL, name);
+	if (!status)
+		goto no_paths;
+
+	return o;
+no_paths:
+	X509_STORE_free (o);
+	return NULL;
+}
+
 static int verify_cert (struct capi *o, X509 *cert, STACK_OF (X509) *chain)
 {
-	X509_STORE *store;
-
 	if (o->store_c == NULL) {
 		if (o->store == NULL &&
-		    (o->store = capi_store_alloc (o->cadir)) == NULL)
+		    (o->store = ossl_store_alloc (o->cadir)) == NULL)
 			return 0;
 
 		if ((o->store_c = X509_STORE_CTX_new ()) == NULL)
@@ -202,9 +218,7 @@ static int verify_cert (struct capi *o, X509 *cert, STACK_OF (X509) *chain)
 	else
 		X509_STORE_CTX_cleanup (o->store_c);
 
-	store = (void *) o->store;
-
-	if (!X509_STORE_CTX_init (o->store_c, store, cert, chain))
+	if (!X509_STORE_CTX_init (o->store_c, o->store, cert, chain))
 		return 0;
 
 	return X509_verify_cert (o->store_c);
