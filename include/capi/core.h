@@ -25,7 +25,7 @@
 struct capi *capi_alloc (const char *prov, const char *name);
 void capi_free (struct capi *o);
 
-struct capi_key  *capi_get_key  (struct capi *o);
-struct capi_cert *capi_get_cert (struct capi *o);
+const struct capi_key  *capi_get_key  (struct capi *o);
+const struct capi_cert *capi_get_cert (struct capi *o);
 
 #endif  /* CAPI_CORE_H */

@@ -100,7 +100,7 @@ int capi_hash_final (struct capi_hash *o, void *md, unsigned len)
 }
 
 int capi_hash_sign (struct capi_hash *o, void *sign, unsigned len,
-		    struct capi_key *key)
+		    const struct capi_key *key)
 {
 	EVP_MD_CTX *c = (void *) o;
 	EVP_PKEY   *k = (void *) key;
@@ -122,7 +122,7 @@ int capi_hash_sign (struct capi_hash *o, void *sign, unsigned len,
 }
 
 int capi_hash_verify (struct capi_hash *o, const void *sign, unsigned len,
-		      struct capi_key *key)
+		      const struct capi_key *key)
 {
 	EVP_MD_CTX *c = (void *) o;
 	EVP_PKEY   *k = (void *) key;

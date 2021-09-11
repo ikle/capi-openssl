@@ -112,12 +112,12 @@ void capi_free (struct capi *o)
 	free (o);
 }
 
-struct capi_key *capi_get_key (struct capi *o)
+const struct capi_key *capi_get_key (struct capi *o)
 {
 	return (void *) o->key;
 }
 
-struct capi_cert *capi_get_cert (struct capi *o)
+const struct capi_cert *capi_get_cert (struct capi *o)
 {
 	if (o->cert == NULL && o->name != NULL)
 		o->cert = load_cert (o);
