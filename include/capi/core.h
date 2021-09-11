@@ -27,5 +27,6 @@ void capi_free (struct capi *o);
 
 const struct capi_key  *capi_get_key  (struct capi *o);
 const struct capi_cert *capi_get_cert (struct capi *o);
+const struct capi_certs *capi_get_certs (struct capi *o);
 
 #endif  /* CAPI_CORE_H */

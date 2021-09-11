@@ -11,6 +11,7 @@
 #include <string.h>
 
 #include <openssl/crypto.h>
+#include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/pem.h>
 #include <openssl/x509.h>
@@ -22,7 +23,7 @@
 struct capi {
 	const char *name;  /* key storage name */
 	EVP_PKEY *key;
-	X509 *cert;
+	STACK_OF (X509) *chain;
 };
 
 static FILE *capi_open_key (struct capi *o)
@@ -62,17 +63,33 @@ static EVP_PKEY *load_key (struct capi *o)
 	return key;
 }
 
-static X509 *load_cert (struct capi *o)
+static STACK_OF (X509) *load_cert_chain (struct capi *o)
 {
 	FILE *f;
+	STACK_OF (X509) *chain;
 	X509 *cert;
 
 	if ((f = capi_open_cert (o)) == NULL)
 		return NULL;
 
-	cert = PEM_read_X509 (f, NULL, NULL, NULL);
+	if ((chain = sk_X509_new_null ()) == NULL)
+		goto no_chain;
+
+	ERR_set_mark ();
+
+	while ((cert = PEM_read_X509 (f, NULL, NULL, NULL)) != NULL)
+		if (!sk_X509_push (chain, cert))
+			goto no_push;
+
+	ERR_pop_to_mark ();
 	fclose (f);
-	return cert;
+	return chain;
+no_push:
+	X509_free (cert);
+	sk_X509_pop_free (chain, X509_free);
+no_chain:
+	fclose (f);
+	return NULL;
 }
 
 struct capi *capi_alloc (const char *prov, const char *name)
@@ -91,7 +108,7 @@ struct capi *capi_alloc (const char *prov, const char *name)
 #endif
 	o->name = name;
 	o->key  = NULL;
-	o->cert = NULL;
+	o->chain = NULL;
 
 	if (name != NULL && (o->key = load_key (o)) == NULL)
 		goto no_key;
@@ -107,7 +124,7 @@ void capi_free (struct capi *o)
 	if (o == NULL)
 		return;
 
-	X509_free (o->cert);
+	sk_X509_pop_free (o->chain, X509_free);
 	EVP_PKEY_free (o->key);
 	free (o);
 }
@@ -117,10 +134,29 @@ const struct capi_key *capi_get_key (struct capi *o)
 	return (void *) o->key;
 }
 
+const struct capi_certs *capi_get_certs (struct capi *o)
+{
+	if (o->chain == NULL && o->name != NULL)
+		o->chain = load_cert_chain (o);
+
+	return (void *) o->chain;
+}
+
+static X509 *get_cert_at (struct capi *o, int i)
+{
+	STACK_OF (X509) *chain;
+	int n;
+
+	if ((chain = (void *) capi_get_certs (o)) == NULL)
+		return NULL;
+
+	if ((n = sk_X509_num (chain)) <= 0 || i >= n)
+		return NULL;
+
+	return sk_X509_value (chain, i);
+}
+
 const struct capi_cert *capi_get_cert (struct capi *o)
 {
-	if (o->cert == NULL && o->name != NULL)
-		o->cert = load_cert (o);
-
-	return (void *) o->cert;
+	return (void *) get_cert_at (o, 0);
 }
