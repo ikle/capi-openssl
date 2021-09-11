@@ -6,36 +6,46 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
+#include <stdlib.h>
+
 #include <openssl/x509_vfy.h>
 
 #include <capi/store.h>
 
+struct capi_store {
+	X509_STORE *store;
+};
+
 struct capi_store *capi_store_alloc (const char *name)
 {
-	X509_STORE *o;
+	struct capi_store *o;
 	int status;
 
-	if ((o = X509_STORE_new ()) == NULL)
+	if ((o = malloc (sizeof (*o))) == NULL)
 		return NULL;
 
-	status = name == NULL ? X509_STORE_set_default_paths (o) :
-				X509_STORE_load_locations (o, NULL, name);
+	if ((o->store = X509_STORE_new ()) == NULL)
+		goto no_store;
+
+	status = name == NULL ? X509_STORE_set_default_paths (o->store) :
+				X509_STORE_load_locations (o->store, NULL, name);
 	if (!status)
 		goto no_paths;
 
-	return (void *) o;
+	return o;
 no_paths:
-	X509_STORE_free (o);
+	X509_STORE_free (o->store);
+no_store:
+	free (o);
 	return NULL;
 }
 
-void capi_store_free (struct capi_store *store)
+void capi_store_free (struct capi_store *o)
 {
-	X509_STORE *o = (void *) store;
-
 	if (o == NULL)
 		return;
 
-	X509_STORE_free (o);
+	X509_STORE_free (o->store);
+	free (o);
 }
 
