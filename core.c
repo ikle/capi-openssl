@@ -160,3 +160,39 @@ const struct capi_cert *capi_get_cert (struct capi *o)
 {
 	return (void *) get_cert_at (o, 0);
 }
+
+int capi_read_cert (struct capi *o, int i, void *data, size_t len)
+{
+	X509 *cert;
+	unsigned char *p = data;
+	int n;
+
+	if ((cert = get_cert_at (o, i)) == NULL)
+		return 0;
+
+	if ((n = i2d_X509 (cert, NULL)) > len)
+		return n;
+
+	return i2d_X509 (cert, &p);
+}
+
+int capi_push_cert (struct capi *o, const void *data, size_t len)
+{
+	STACK_OF (X509) *chain;
+	X509 *cert;
+	const unsigned char *p = data;
+
+	if ((chain = (void *) capi_get_certs (o)) == NULL)
+		return 0;
+
+	if ((cert = d2i_X509 (NULL, &p, len)) == NULL)
+		return 0;
+
+	// To Do: verify cert here
+
+	if (sk_X509_push (chain, cert))
+		return 1;
+
+	X509_free (cert);
+	return 0;
+}
