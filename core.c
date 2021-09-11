@@ -144,7 +144,7 @@ const struct capi_key *capi_get_key (struct capi *o)
 	return (void *) o->key;
 }
 
-const struct capi_certs *capi_get_certs (struct capi *o)
+const struct capi_cert *capi_get_cert (struct capi *o)
 {
 	if (o->chain == NULL && o->name != NULL)
 		o->chain = load_cert_chain (o);
@@ -157,18 +157,13 @@ static X509 *get_cert_at (struct capi *o, int i)
 	STACK_OF (X509) *chain;
 	int n;
 
-	if ((chain = (void *) capi_get_certs (o)) == NULL)
+	if ((chain = (void *) capi_get_cert (o)) == NULL)
 		return NULL;
 
 	if ((n = sk_X509_num (chain)) <= 0 || i >= n)
 		return NULL;
 
 	return sk_X509_value (chain, i);
-}
-
-const struct capi_cert *capi_get_cert (struct capi *o)
-{
-	return (void *) get_cert_at (o, 0);
 }
 
 int capi_read_cert (struct capi *o, int i, void *data, size_t len)
@@ -230,7 +225,7 @@ int capi_push_cert (struct capi *o, const void *data, size_t len)
 	X509 *cert;
 	const unsigned char *p = data;
 
-	if ((chain = (void *) capi_get_certs (o)) == NULL)
+	if ((chain = (void *) capi_get_cert (o)) == NULL)
 		return 0;
 
 	if ((cert = d2i_X509 (NULL, &p, len)) == NULL)
