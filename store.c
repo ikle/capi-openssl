@@ -15,6 +15,7 @@
 struct capi_store {
 	X509_STORE *store;
 	STACK_OF (X509) *chain;		/* untrusted */
+	X509_STORE_CTX *ctx;
 };
 
 struct capi_store *capi_store_alloc (const char *name)
@@ -34,6 +35,7 @@ struct capi_store *capi_store_alloc (const char *name)
 		goto no_paths;
 
 	o->chain = NULL;
+	o->ctx   = NULL;
 
 	return o;
 no_paths:
@@ -48,6 +50,7 @@ void capi_store_free (struct capi_store *o)
 	if (o == NULL)
 		return;
 
+	X509_STORE_CTX_free (o->ctx);
 	sk_X509_pop_free (o->chain, X509_free);
 	X509_STORE_free (o->store);
 	free (o);
@@ -69,4 +72,29 @@ int capi_store_add (struct capi_store *o, const void *data, size_t len)
 
 	X509_free (cert);
 	return 0;
+}
+
+int capi_store_verify (struct capi_store *o, const void *data, size_t len)
+{
+	const unsigned char *p = data;
+	X509 *cert;
+	int ret;
+
+	if (o->ctx == NULL) {
+		if ((o->ctx = X509_STORE_CTX_new ()) == NULL)
+			return 0;
+	}
+	else
+		X509_STORE_CTX_cleanup (o->ctx);
+
+	if ((cert = d2i_X509 (NULL, &p, len)) == NULL)
+		return 0;
+
+	if (!X509_STORE_CTX_init (o->ctx, o->store, cert, o->chain))
+		return 0;
+
+	ret = X509_verify_cert (o->ctx);
+
+	X509_free (cert);
+	return ret;
 }
