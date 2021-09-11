@@ -56,6 +56,12 @@ void capi_store_free (struct capi_store *o)
 	free (o);
 }
 
+void capi_store_reset (struct capi_store *o)
+{
+	sk_X509_pop_free (o->chain, X509_free);
+	o->chain = NULL;
+}
+
 int capi_store_add (struct capi_store *o, const void *data, size_t len)
 {
 	const unsigned char *p = data;

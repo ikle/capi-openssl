@@ -14,6 +14,8 @@
 struct capi_store *capi_store_alloc (const char *name);
 void capi_store_free (struct capi_store *o);
 
+void capi_store_reset (struct capi_store *o);
+
 int capi_store_add    (struct capi_store *o, const void *data, size_t len);
 int capi_store_verify (struct capi_store *o, const void *data, size_t len);
 
