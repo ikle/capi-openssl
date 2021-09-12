@@ -39,13 +39,8 @@ void capi_random_free (struct capi_random *o)
 	free (o);
 }
 
-int capi_randon_seed (struct capi_random *o, const void *data, size_t len)
+static int simple_seed (struct capi_random *o, const void *data, size_t len)
 {
-	if (o->core != NULL) {
-		RAND_seed (data, len);
-		return 1;
-	}
-
 	if (len > sizeof (o->state))
 		len = sizeof (o->state);
 
@@ -53,16 +48,40 @@ int capi_randon_seed (struct capi_random *o, const void *data, size_t len)
 	return 1;
 }
 
-int capi_random (struct capi_random *o, void *data, size_t len)
+static int simple_random (struct capi_random *o, void *data, size_t len)
 {
 	const unsigned long long a = 0x5DEECE66D, c = 0xB;
 	unsigned char *p;
-
-	if (o->core != NULL)
-		return RAND_bytes (data, len) == 1;
 
 	for (p = data; len > 0; o->state = o->state * a + c, ++p, --len)
 		*p = o->state;
 
 	return 1;
+}
+
+static int secure_seed (struct capi_random *o, const void *data, size_t len)
+{
+	RAND_seed (data, len);
+	return 1;
+}
+
+static int secure_random (struct capi_random *o, void *data, size_t len)
+{
+	return RAND_bytes (data, len) == 1;
+}
+
+int capi_randon_seed (struct capi_random *o, const void *data, size_t len)
+{
+	if (o->core != NULL)
+		return secure_seed (o, data, len);
+
+	return simple_seed (o, data, len);
+}
+
+int capi_random (struct capi_random *o, void *data, size_t len)
+{
+	if (o->core != NULL)
+		return secure_random (o, data, len);
+
+	return simple_random (o, data, len);
 }
