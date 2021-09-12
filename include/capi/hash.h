@@ -16,6 +16,7 @@ struct capi_hash *capi_hash_clone (struct capi_hash *o);
 void capi_hash_free (struct capi_hash *o);
 
 int capi_hash_update (struct capi_hash *o, const void *in, size_t len);
+int capi_hash_fetch  (struct capi_hash *o, void *md, unsigned len);
 int capi_hash_reset  (struct capi_hash *o);
 int capi_hash_final  (struct capi_hash *o, void *md, unsigned len);
 
