@@ -106,20 +106,6 @@ int capi_hash_final (struct capi_hash *o, void *md, unsigned len)
 	return count;
 }
 
-int capi_hash_fetch (struct capi_hash *o, void *md, unsigned len)
-{
-	struct capi_hash *h;
-	int ret;
-
-	if ((h = capi_hash_clone (o)) == NULL)
-		return 0;
-
-	ret = capi_hash_final (h, md, len);
-
-	capi_hash_free (h);
-	return ret;
-}
-
 int capi_hash_sign (struct capi_hash *o, void *sign, unsigned len,
 		    const struct capi_key *key)
 {
