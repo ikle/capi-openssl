@@ -65,6 +65,13 @@ void capi_hash_free (struct capi_hash *o)
 	EVP_MD_CTX_free (c);
 }
 
+size_t capi_hash_size (struct capi_hash *o)
+{
+	EVP_MD_CTX *c = (void *) o;
+
+	return EVP_MD_CTX_size (c);
+}
+
 int capi_hash_update (struct capi_hash *o, const void *in, size_t len)
 {
 	EVP_MD_CTX *c = (void *) o;
