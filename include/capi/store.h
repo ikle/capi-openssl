@@ -28,6 +28,9 @@
  * The function capi_store_add_host adds peer host name to verify. Only
  * single host name may be supported. Returns 1 on success, zero overwise.
  *
+ * The function capi_store_add_mail adds peer e-mail address name to verify.
+ * Only single address may be supported. Returns 1 on success, zero overwise.
+ *
  * The capi_store_verify verifies DER encoded certificate agains certificate
  * store. Returns 1 on success, zero overwise.
  */
@@ -38,6 +41,7 @@ void capi_store_reset (struct capi_store *o);
 
 int capi_store_add_cert (struct capi_store *o, const void *data, size_t len);
 int capi_store_add_host (struct capi_store *o, const char *host);
+int capi_store_add_mail (struct capi_store *o, const char *mail);
 
 int capi_store_verify (struct capi_store *o, const void *data, size_t len);
 
