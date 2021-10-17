@@ -22,8 +22,8 @@
  * initial state. This function remove all untrusted certificates from
  * certificate store.
  *
- * The function capi_store_add adds DER encoded untrusted certificate into
- * certificate store. Returns 1 on success, zero overwise.
+ * The function capi_store_add_cert adds DER encoded untrusted certificate
+ * into certificate store. Returns 1 on success, zero overwise.
  *
  * The capi_store_verify verifies DER encoded certificate agains certificate
  * store. Returns 1 on success, zero overwise.
@@ -33,7 +33,8 @@ void capi_store_free (struct capi_store *o);
 
 void capi_store_reset (struct capi_store *o);
 
-int capi_store_add    (struct capi_store *o, const void *data, size_t len);
+int capi_store_add_cert (struct capi_store *o, const void *data, size_t len);
+
 int capi_store_verify (struct capi_store *o, const void *data, size_t len);
 
 #endif  /* CAPI_STORE_H */

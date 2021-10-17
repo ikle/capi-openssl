@@ -62,7 +62,7 @@ void capi_store_reset (struct capi_store *o)
 	o->chain = NULL;
 }
 
-int capi_store_add (struct capi_store *o, const void *data, size_t len)
+int capi_store_add_cert (struct capi_store *o, const void *data, size_t len)
 {
 	const unsigned char *p = data;
 	X509 *cert;
