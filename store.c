@@ -14,8 +14,12 @@
 
 struct capi_store {
 	X509_STORE *store;
+
 	STACK_OF (X509) *chain;		/* untrusted */
 	const char *host, *mail;
+	const void *addr;
+	size_t addr_len;
+
 	X509_STORE_CTX *ctx;
 };
 
@@ -38,6 +42,7 @@ struct capi_store *capi_store_alloc (const char *name)
 	o->chain = NULL;
 	o->host  = NULL;
 	o->mail  = NULL;
+	o->addr  = NULL;
 	o->ctx   = NULL;
 
 	return o;
@@ -65,6 +70,7 @@ void capi_store_reset (struct capi_store *o)
 	o->chain = NULL;
 	o->host  = NULL;
 	o->mail  = NULL;
+	o->addr  = NULL;
 }
 
 int capi_store_add_cert (struct capi_store *o, const void *data, size_t len)
@@ -97,6 +103,13 @@ int capi_store_add_mail (struct capi_store *o, const char *mail)
 	return 1;
 }
 
+int capi_store_add_ip (struct capi_store *o, const void *addr, size_t len)
+{
+	o->addr     = addr;
+	o->addr_len = len;
+	return 1;
+}
+
 static int capi_store_apply_params (struct capi_store *o)
 {
 	X509_VERIFY_PARAM *param;
@@ -112,6 +125,9 @@ static int capi_store_apply_params (struct capi_store *o)
 
 	ok &= o->mail == NULL ||
 	      X509_VERIFY_PARAM_set1_email (param, o->mail, 0);
+
+	ok &= o->addr == NULL ||
+	      X509_VERIFY_PARAM_set1_ip (param, o->addr, o->addr_len);
 
 	return ok;
 }
