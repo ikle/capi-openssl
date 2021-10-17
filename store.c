@@ -15,6 +15,7 @@
 struct capi_store {
 	X509_STORE *store;
 	STACK_OF (X509) *chain;		/* untrusted */
+	const char *host;
 	X509_STORE_CTX *ctx;
 };
 
@@ -35,6 +36,7 @@ struct capi_store *capi_store_alloc (const char *name)
 		goto no_paths;
 
 	o->chain = NULL;
+	o->host  = NULL;
 	o->ctx   = NULL;
 
 	return o;
@@ -60,6 +62,7 @@ void capi_store_reset (struct capi_store *o)
 {
 	sk_X509_pop_free (o->chain, X509_free);
 	o->chain = NULL;
+	o->host  = NULL;
 }
 
 int capi_store_add_cert (struct capi_store *o, const void *data, size_t len)
@@ -80,6 +83,26 @@ int capi_store_add_cert (struct capi_store *o, const void *data, size_t len)
 	return 0;
 }
 
+int capi_store_add_host (struct capi_store *o, const char *host)
+{
+	o->host = host;
+	return 1;
+}
+
+static int capi_store_apply_params (struct capi_store *o)
+{
+	X509_VERIFY_PARAM *param;
+	int ok = 1;
+
+	if ((param = X509_STORE_CTX_get0_param (o->ctx)) == NULL)
+		return 0;
+
+	ok &= o->host == NULL ||
+	      X509_VERIFY_PARAM_set1_host (param, o->host, 0);
+
+	return ok;
+}
+
 int capi_store_verify (struct capi_store *o, const void *data, size_t len)
 {
 	const unsigned char *p = data;
@@ -97,6 +120,7 @@ int capi_store_verify (struct capi_store *o, const void *data, size_t len)
 		return 0;
 
 	ok = X509_STORE_CTX_init (o->ctx, o->store, cert, o->chain) &&
+	     capi_store_apply_params (o) &&
 	     X509_verify_cert (o->ctx) == 1;
 
 	X509_free (cert);
