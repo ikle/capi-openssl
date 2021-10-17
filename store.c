@@ -97,6 +97,8 @@ static int capi_store_apply_params (struct capi_store *o)
 	if ((param = X509_STORE_CTX_get0_param (o->ctx)) == NULL)
 		return 0;
 
+	(void) X509_VERIFY_PARAM_set_flags (param, X509_V_FLAG_TRUSTED_FIRST);
+
 	ok &= o->host == NULL ||
 	      X509_VERIFY_PARAM_set1_host (param, o->host, 0);
 
