@@ -11,6 +11,23 @@
 
 #include <stddef.h>
 
+/*
+ * The function capi_store_alloc creates the new certificate store object.
+ * If name is NULL then the default trusted certificate store is used,
+ * overwise trusted certificates loaded from named store.
+ *
+ * The function capi_store_free destroys certificate store object.
+ *
+ * The function capi_store_reset resets internal certificate store state to
+ * initial state. This function remove all untrusted certificates from
+ * certificate store.
+ *
+ * The function capi_store_add adds DER encoded untrusted certificate into
+ * certificate store. Returns 1 on success, zero overwise.
+ *
+ * The capi_store_verify verifies DER encoded certificate agains certificate
+ * store. Returns 1 on success, zero overwise.
+ */
 struct capi_store *capi_store_alloc (const char *name);
 void capi_store_free (struct capi_store *o);
 
