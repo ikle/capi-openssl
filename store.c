@@ -1,5 +1,5 @@
 /*
- * Crypto API Store
+ * Crypto API Certificate Store
  *
  * Copyright (c) 2017-2021 Alexei A. Smekalkine <ikle@ikle.ru>
  *
