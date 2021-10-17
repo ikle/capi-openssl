@@ -84,7 +84,7 @@ int capi_store_verify (struct capi_store *o, const void *data, size_t len)
 {
 	const unsigned char *p = data;
 	X509 *cert;
-	int ret;
+	int ok;
 
 	if (o->ctx == NULL) {
 		if ((o->ctx = X509_STORE_CTX_new ()) == NULL)
@@ -99,8 +99,8 @@ int capi_store_verify (struct capi_store *o, const void *data, size_t len)
 	if (!X509_STORE_CTX_init (o->ctx, o->store, cert, o->chain))
 		return 0;
 
-	ret = X509_verify_cert (o->ctx);
+	ok = X509_verify_cert (o->ctx) == 1;
 
 	X509_free (cert);
-	return ret;
+	return ok;
 }
