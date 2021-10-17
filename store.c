@@ -96,10 +96,8 @@ int capi_store_verify (struct capi_store *o, const void *data, size_t len)
 	if ((cert = d2i_X509 (NULL, &p, len)) == NULL)
 		return 0;
 
-	if (!X509_STORE_CTX_init (o->ctx, o->store, cert, o->chain))
-		return 0;
-
-	ok = X509_verify_cert (o->ctx) == 1;
+	ok = X509_STORE_CTX_init (o->ctx, o->store, cert, o->chain) &&
+	     X509_verify_cert (o->ctx) == 1;
 
 	X509_free (cert);
 	return ok;
