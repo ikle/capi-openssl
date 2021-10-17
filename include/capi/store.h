@@ -20,7 +20,7 @@
  *
  * The function capi_store_reset resets internal certificate store state to
  * initial state. This function remove all untrusted certificates from
- * certificate store.
+ * certificate store and resets peer host names, e-mail and IP addresses.
  *
  * The function capi_store_add_cert adds DER encoded untrusted certificate
  * into certificate store. Returns 1 on success, zero overwise.
@@ -37,6 +37,10 @@
  *
  * The capi_store_verify verifies DER encoded certificate agains certificate
  * store. Returns 1 on success, zero overwise.
+ *
+ * Note that capi_store_add_* functions may not save passed values
+ * internally. This values must be valid at time when capi_store_verify
+ * called.
  */
 struct capi_store *capi_store_alloc (const char *name);
 void capi_store_free (struct capi_store *o);
