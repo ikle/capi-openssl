@@ -9,6 +9,7 @@
 #include <stdlib.h>
 
 #include <openssl/x509_vfy.h>
+#include <openssl/x509v3.h>
 
 #include <capi/store.h>
 
@@ -16,7 +17,7 @@ struct capi_store {
 	X509_STORE *store;
 
 	STACK_OF (X509) *chain;		/* untrusted */
-	const char *host, *mail;
+	const char *host, *mail, *usage;
 	const void *addr;
 	size_t addr_len;
 
@@ -43,6 +44,7 @@ struct capi_store *capi_store_alloc (const char *name)
 	o->host  = NULL;
 	o->mail  = NULL;
 	o->addr  = NULL;
+	o->usage = NULL;
 	o->ctx   = NULL;
 
 	return o;
@@ -71,6 +73,7 @@ void capi_store_reset (struct capi_store *o)
 	o->host  = NULL;
 	o->mail  = NULL;
 	o->addr  = NULL;
+	o->usage = NULL;
 }
 
 int capi_store_add_cert (struct capi_store *o, const void *data, size_t len)
@@ -110,6 +113,23 @@ int capi_store_add_ip (struct capi_store *o, const void *addr, size_t len)
 	return 1;
 }
 
+int capi_store_add_usage (struct capi_store *o, const char *usage)
+{
+	o->usage = usage;
+	return 1;
+}
+
+static int get_usage_id (const char *name)
+{
+	int i = X509_PURPOSE_get_by_sname (name);
+	X509_PURPOSE *usage;
+
+	if ((usage = X509_PURPOSE_get0 (i)) == NULL)
+		return X509_PURPOSE_ANY;
+
+	return X509_PURPOSE_get_id (usage);
+}
+
 static int capi_store_apply_params (struct capi_store *o)
 {
 	X509_VERIFY_PARAM *param;
@@ -128,6 +148,9 @@ static int capi_store_apply_params (struct capi_store *o)
 
 	ok &= o->addr == NULL ||
 	      X509_VERIFY_PARAM_set1_ip (param, o->addr, o->addr_len);
+
+	ok &= o->usage == NULL ||
+	      X509_VERIFY_PARAM_set_purpose (param, get_usage_id (o->usage));
 
 	return ok;
 }
