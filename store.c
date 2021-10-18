@@ -15,12 +15,8 @@
 
 struct capi_store {
 	X509_STORE *store;
-
 	STACK_OF (X509) *chain;		/* untrusted */
-	const char *host, *mail, *usage;
-	const void *addr;
-	size_t addr_len;
-
+	X509_VERIFY_PARAM *param;
 	X509_STORE_CTX *ctx;
 };
 
@@ -41,10 +37,7 @@ struct capi_store *capi_store_alloc (const char *name)
 		goto no_paths;
 
 	o->chain = NULL;
-	o->host  = NULL;
-	o->mail  = NULL;
-	o->addr  = NULL;
-	o->usage = NULL;
+	o->param = NULL;
 	o->ctx   = NULL;
 
 	return o;
@@ -61,6 +54,7 @@ void capi_store_free (struct capi_store *o)
 		return;
 
 	X509_STORE_CTX_free (o->ctx);
+	X509_VERIFY_PARAM_free (o->param);
 	sk_X509_pop_free (o->chain, X509_free);
 	X509_STORE_free (o->store);
 	free (o);
@@ -70,10 +64,9 @@ void capi_store_reset (struct capi_store *o)
 {
 	sk_X509_pop_free (o->chain, X509_free);
 	o->chain = NULL;
-	o->host  = NULL;
-	o->mail  = NULL;
-	o->addr  = NULL;
-	o->usage = NULL;
+
+	X509_VERIFY_PARAM_free (o->param);
+	o->param = NULL;
 }
 
 int capi_store_add_cert (struct capi_store *o, const void *data, size_t len)
@@ -94,29 +87,34 @@ int capi_store_add_cert (struct capi_store *o, const void *data, size_t len)
 	return 0;
 }
 
+static int param_prepare (struct capi_store *o)
+{
+	return (o->param != NULL) ||
+	       (o->param = X509_VERIFY_PARAM_new ()) != NULL;
+}
+
 int capi_store_add_host (struct capi_store *o, const char *host)
 {
-	o->host = host;
-	return 1;
+	if (!param_prepare (o))
+		return 0;
+
+	return X509_VERIFY_PARAM_add1_host (o->param, host, 0);
 }
 
 int capi_store_add_mail (struct capi_store *o, const char *mail)
 {
-	o->mail = mail;
-	return 1;
+	if (!param_prepare (o))
+		return 0;
+
+	return X509_VERIFY_PARAM_set1_email (o->param, mail, 0);
 }
 
 int capi_store_add_ip (struct capi_store *o, const void *addr, size_t len)
 {
-	o->addr     = addr;
-	o->addr_len = len;
-	return 1;
-}
+	if (!param_prepare (o))
+		return 0;
 
-int capi_store_add_usage (struct capi_store *o, const char *usage)
-{
-	o->usage = usage;
-	return 1;
+	return X509_VERIFY_PARAM_set1_ip (o->param, addr, len);
 }
 
 static int get_usage_id (const char *name)
@@ -130,29 +128,24 @@ static int get_usage_id (const char *name)
 	return X509_PURPOSE_get_id (usage);
 }
 
+int capi_store_add_usage (struct capi_store *o, const char *usage)
+{
+	if (!param_prepare (o))
+		return 0;
+
+	return X509_VERIFY_PARAM_set_purpose (o->param, get_usage_id (usage));
+}
+
 static int capi_store_apply_params (struct capi_store *o)
 {
 	X509_VERIFY_PARAM *param;
-	int ok = 1;
 
 	if ((param = X509_STORE_CTX_get0_param (o->ctx)) == NULL)
 		return 0;
 
 	(void) X509_VERIFY_PARAM_set_flags (param, X509_V_FLAG_TRUSTED_FIRST);
 
-	ok &= o->host == NULL ||
-	      X509_VERIFY_PARAM_set1_host (param, o->host, 0);
-
-	ok &= o->mail == NULL ||
-	      X509_VERIFY_PARAM_set1_email (param, o->mail, 0);
-
-	ok &= o->addr == NULL ||
-	      X509_VERIFY_PARAM_set1_ip (param, o->addr, o->addr_len);
-
-	ok &= o->usage == NULL ||
-	      X509_VERIFY_PARAM_set_purpose (param, get_usage_id (o->usage));
-
-	return ok;
+	return o->param == NULL || X509_VERIFY_PARAM_set1 (param, o->param);
 }
 
 int capi_store_verify (struct capi_store *o, const void *data, size_t len)

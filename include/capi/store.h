@@ -26,8 +26,8 @@
  * The function capi_store_add_cert adds DER encoded untrusted certificate
  * into certificate store. Returns 1 on success, zero overwise.
  *
- * The function capi_store_add_host adds peer host name to verify. Only
- * single host name may be supported. Returns 1 on success, zero overwise.
+ * The function capi_store_add_host adds peer host name to verify. Returns
+ * 1 on success, zero overwise.
  *
  * The function capi_store_add_mail adds peer e-mail address name to verify.
  * Only single address may be supported. Returns 1 on success, zero overwise.
