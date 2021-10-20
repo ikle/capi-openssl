@@ -63,6 +63,11 @@ static EVP_PKEY *load_key (struct capi *o)
 	return key;
 }
 
+static EVP_PKEY *generate_key (struct capi *o)
+{
+	return NULL;  /* not implemented yet */
+}
+
 static STACK_OF (X509) *load_cert_chain (struct capi *o)
 {
 	FILE *f;
@@ -110,8 +115,14 @@ struct capi *capi_alloc (const char *prov, const char *type, const char *name)
 	o->key  = NULL;
 	o->chain = NULL;
 
-	if (name != NULL && (o->key = load_key (o)) == NULL)
-		goto no_key;
+	if (name != NULL) {
+		if ((o->key = load_key (o)) == NULL)
+			goto no_key;
+	}
+	else if (type != NULL) {
+		if ((o->key = generate_key (o)) == NULL)
+			goto no_key;
+	}
 
 	return o;
 no_key:
