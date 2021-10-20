@@ -92,7 +92,7 @@ no_chain:
 	return NULL;
 }
 
-struct capi *capi_alloc (const char *prov, const char *name)
+struct capi *capi_alloc (const char *prov, const char *type, const char *name)
 {
 	struct capi *o;
 
