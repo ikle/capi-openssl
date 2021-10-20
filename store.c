@@ -22,6 +22,8 @@ struct capi_store {
 
 struct capi_store *capi_store_alloc (const char *name)
 {
+	const unsigned long flags = X509_V_FLAG_TRUSTED_FIRST |
+				    X509_V_FLAG_CRL_CHECK;
 	struct capi_store *o;
 	int status;
 
@@ -36,7 +38,7 @@ struct capi_store *capi_store_alloc (const char *name)
 	if (!status)
 		goto no_paths;
 
-	(void) X509_STORE_set_flags (o->store, X509_V_FLAG_TRUSTED_FIRST);
+	(void) X509_STORE_set_flags (o->store, flags);
 
 	o->chain = NULL;
 	o->param = NULL;
