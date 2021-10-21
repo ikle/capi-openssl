@@ -22,7 +22,7 @@
 
 struct capi {
 	const char *name;  /* key storage name */
-	EVP_PKEY *key;
+	EVP_PKEY *private;
 	STACK_OF (X509) *chain;
 };
 
@@ -111,16 +111,16 @@ struct capi *capi_alloc (const char *prov, const char *type, const char *name)
 	OpenSSL_add_all_algorithms ();
 	OPENSSL_config (NULL);
 #endif
-	o->name = name;
-	o->key  = NULL;
-	o->chain = NULL;
+	o->name    = name;
+	o->private = NULL;
+	o->chain   = NULL;
 
 	if (name != NULL) {
-		if ((o->key = load_key (o)) == NULL)
+		if ((o->private = load_key (o)) == NULL)
 			goto no_key;
 	}
 	else if (type != NULL) {
-		if ((o->key = generate_key (o)) == NULL)
+		if ((o->private = generate_key (o)) == NULL)
 			goto no_key;
 	}
 
@@ -136,13 +136,13 @@ void capi_free (struct capi *o)
 		return;
 
 	sk_X509_pop_free (o->chain, X509_free);
-	EVP_PKEY_free (o->key);
+	EVP_PKEY_free (o->private);
 	free (o);
 }
 
 const struct capi_key *capi_get_key (struct capi *o)
 {
-	return (void *) o->key;
+	return (void *) o->private;
 }
 
 const struct capi_cert *capi_get_cert (struct capi *o)
