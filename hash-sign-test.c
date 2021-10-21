@@ -14,7 +14,7 @@
 int main (int argc, char *argv[])
 {
 	struct capi *o;
-	struct capi_hash *h, *h2;
+	struct capi_hash *h;
 	FILE *f;
 	char buf[256], sign[256];
 	size_t count, len;
@@ -43,19 +43,13 @@ int main (int argc, char *argv[])
 	while ((count = fread (buf, 1, sizeof (buf), f)) > 0)
 		capi_hash_update (h, buf, count);
 
-	if ((h2 = capi_hash_clone (h)) == NULL) {
-		fprintf (stderr, "E: cannot clone hash context\n");
-		return 1;
-	}
-
 	len = capi_hash_sign (h, sign, sizeof (sign));
 	capi_dump (stdout, "sign = ", sign, len);
 
 	printf ("verify = %s\n",
-		capi_hash_verify (h2, sign, len) ?
+		capi_hash_verify (h, sign, len) ?
 		"OK" : "FAILED");
 
-	capi_hash_free (h2);
 	capi_hash_free (h);
 	capi_free (o);
 	return 0;
