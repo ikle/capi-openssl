@@ -96,9 +96,6 @@ struct capi *capi_alloc (const char *prov, const char *type, const char *name)
 {
 	struct capi *o;
 
-	if (prov != NULL)
-		return NULL;
-
 	if ((o = malloc (sizeof (*o))) == NULL)
 		return NULL;
 
