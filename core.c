@@ -18,14 +18,8 @@
 
 #include <capi/core.h>
 
+#include "core-internal.h"
 #include "misc.h"
-
-struct capi {
-	const char *type;		/* key type		*/
-	const char *name;		/* key storage name	*/
-	EVP_PKEY *key, *flash;
-	STACK_OF (X509) *chain;
-};
 
 static FILE *capi_open_key (struct capi *o)
 {
