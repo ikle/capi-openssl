@@ -32,7 +32,7 @@
  * The functions capi_get_key and capi_get_cert returns private key and
  * certificate from a cryptographic context, respectively.
  *
- * The function capi_read_cert retrieves the DER encoded certificate from
+ * The function capi_pull_cert retrieves the DER encoded certificate from
  * the certificate chain contained in a cryptographic context. Certificates
  * are indexed by i starting from zero. The first certificate is an end
  * entity certificate, the second one is it's CA certificate and so on.
@@ -48,6 +48,6 @@ void capi_free (struct capi *o);
 const struct capi_key  *capi_get_key  (struct capi *o);
 const struct capi_cert *capi_get_cert (struct capi *o);
 
-int capi_read_cert (struct capi *o, int i, void *data, size_t len);
+int capi_pull_cert (struct capi *o, int i, void *data, size_t len);
 
 #endif  /* CAPI_CORE_H */

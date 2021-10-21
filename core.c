@@ -167,7 +167,7 @@ static X509 *get_cert_at (struct capi *o, int i)
 	return sk_X509_value (chain, i);
 }
 
-int capi_read_cert (struct capi *o, int i, void *data, size_t len)
+int capi_pull_cert (struct capi *o, int i, void *data, size_t len)
 {
 	X509 *cert;
 	unsigned char *p = data;
