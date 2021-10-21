@@ -103,7 +103,12 @@ struct capi *capi_alloc (const char *prov, const char *type, const char *name)
 	OpenSSL_add_all_algorithms ();
 	OPENSSL_config (NULL);
 #endif
-	o->engine  = prov != NULL ? ENGINE_by_id (prov) : NULL;
+	if (prov == NULL)
+		o->engine = NULL;
+	else
+	if ((o->engine = ENGINE_by_id (prov)) == NULL)
+		return NULL;
+
 	o->type    = type;
 	o->name    = name;
 	o->key     = NULL;
