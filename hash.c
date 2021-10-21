@@ -102,7 +102,7 @@ int capi_hash_reset (struct capi_hash *o)
 	       EVP_DigestInit_ex (o->ctx, md, NULL);
 }
 
-int capi_hash_final (struct capi_hash *o, void *md, unsigned len)
+int capi_hash_final (struct capi_hash *o, void *md, size_t len)
 {
 	unsigned char buf[EVP_MAX_MD_SIZE];
 	unsigned count;
@@ -120,7 +120,7 @@ int capi_hash_final (struct capi_hash *o, void *md, unsigned len)
 	return count;
 }
 
-int capi_hash_sign (struct capi_hash *o, void *sign, unsigned len)
+int capi_hash_sign (struct capi_hash *o, void *sign, size_t len)
 {
 	unsigned size = EVP_PKEY_size (o->capi->key);
 	unsigned char buf[size];
@@ -139,7 +139,7 @@ int capi_hash_sign (struct capi_hash *o, void *sign, unsigned len)
 	return count;
 }
 
-int capi_hash_verify (struct capi_hash *o, const void *sign, unsigned len)
+int capi_hash_verify (struct capi_hash *o, const void *sign, size_t len)
 {
 	return EVP_VerifyFinal (o->ctx, sign, len, o->capi->key);
 }

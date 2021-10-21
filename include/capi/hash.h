@@ -19,9 +19,9 @@ size_t capi_hash_size (struct capi_hash *o);
 
 int capi_hash_update (struct capi_hash *o, const void *in, size_t len);
 int capi_hash_reset  (struct capi_hash *o);
-int capi_hash_final  (struct capi_hash *o, void *md, unsigned len);
+int capi_hash_final  (struct capi_hash *o, void *md, size_t len);
 
-int capi_hash_sign   (struct capi_hash *o, void *sign, unsigned len);
-int capi_hash_verify (struct capi_hash *o, const void *sign, unsigned len);
+int capi_hash_sign   (struct capi_hash *o, void *sign, size_t len);
+int capi_hash_verify (struct capi_hash *o, const void *sign, size_t len);
 
 #endif  /* CAPI_HASH_H */
