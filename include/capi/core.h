@@ -28,6 +28,18 @@
  *   created cryptographic context.
  *
  * The function capi_free frees the cryptographic context.
+ *
+ * The functions capi_get_key and capi_get_cert returns private key and
+ * certificate from a cryptographic context, respectively.
+ *
+ * The function capi_read_cert retrieves the DER encoded certificate from
+ * the certificate chain contained in a cryptographic context. Certificates
+ * are indexed by i starting from zero. The first certificate is an end
+ * entity certificate, the second one is it's CA certificate and so on.
+ *
+ * Returns the size of certificate at the specified position or 0 if it is
+ * absent at specified position. If the supplied buffer is large enough to
+ * store certificate object then it is written into it.
  */
 
 struct capi *capi_alloc (const char *prov, const char *type, const char *name);
