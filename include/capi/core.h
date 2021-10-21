@@ -40,6 +40,10 @@
  * Returns the size of certificate at the specified position or 0 if it is
  * absent. If the supplied buffer is large enough to store certificate
  * object then it is written into it.
+ *
+ * The function capi_pull_key retrieves the X.509 DER encoded ephemeral
+ * public key. Returns the size of key. If the supplied buffer is large
+ * enough to store key object then it is written into it.
  */
 
 struct capi *capi_alloc (const char *prov, const char *type, const char *name);
@@ -49,5 +53,6 @@ const struct capi_key  *capi_get_key  (struct capi *o);
 const struct capi_cert *capi_get_cert (struct capi *o);
 
 int capi_pull_cert (struct capi *o, int i, void *data, size_t len);
+int capi_pull_key  (struct capi *o, void *data, size_t len);
 
 #endif  /* CAPI_CORE_H */

@@ -22,7 +22,7 @@
 
 struct capi {
 	const char *name;  /* key storage name */
-	EVP_PKEY *private;
+	EVP_PKEY *private, *flash;
 	STACK_OF (X509) *chain;
 };
 
@@ -113,6 +113,7 @@ struct capi *capi_alloc (const char *prov, const char *type, const char *name)
 #endif
 	o->name    = name;
 	o->private = NULL;
+	o->flash   = NULL;
 	o->chain   = NULL;
 
 	if (name != NULL) {
@@ -136,6 +137,7 @@ void capi_free (struct capi *o)
 		return;
 
 	sk_X509_pop_free (o->chain, X509_free);
+	EVP_PKEY_free (o->flash);
 	EVP_PKEY_free (o->private);
 	free (o);
 }
@@ -180,4 +182,23 @@ int capi_pull_cert (struct capi *o, int i, void *data, size_t len)
 		return n;
 
 	return i2d_X509 (cert, &p);
+}
+
+int capi_pull_key (struct capi *o, void *data, size_t len)
+{
+	X509_PUBKEY *key = NULL;
+	unsigned char *p = data;
+	int n;
+
+	if (o->flash == NULL && (o->flash = generate_key (o)) == NULL)
+		return 0;
+
+	if (X509_PUBKEY_set (&key, o->flash) != 1)
+		return 0;
+
+	if ((n = i2d_X509_PUBKEY (key, NULL)) <= len)
+		i2d_X509_PUBKEY (key, &p);
+
+	X509_PUBKEY_free (key);
+	return n;
 }
