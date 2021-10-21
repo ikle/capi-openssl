@@ -46,10 +46,8 @@ int main (int argc, char *argv[])
 	len = capi_hash_sign (h, sign, sizeof (sign));
 	capi_dump (stdout, "sign = ", sign, len);
 
-	printf ("verify = %s\n",
-		capi_hash_verify (h, sign, len) ?
-		"OK" : "FAILED");
-
+	printf ("verify = %s\n", capi_hash_verify (h, sign, len) ?
+				 "OK" : "FAILED");
 	capi_hash_free (h);
 	capi_free (o);
 	return 0;
