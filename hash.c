@@ -12,6 +12,8 @@
 #include <capi/hash.h>
 #include <openssl/evp.h>
 
+#include "core-internal.h"
+
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 
 #define EVP_MD_CTX_new()	EVP_MD_CTX_create ()
@@ -118,18 +120,16 @@ int capi_hash_final (struct capi_hash *o, void *md, unsigned len)
 	return count;
 }
 
-int capi_hash_sign (struct capi_hash *o, void *sign, unsigned len,
-		    const struct capi_key *key)
+int capi_hash_sign (struct capi_hash *o, void *sign, unsigned len)
 {
-	EVP_PKEY *k = (void *) key;
-	unsigned size = EVP_PKEY_size (k);
+	unsigned size = EVP_PKEY_size (o->capi->key);
 	unsigned char buf[size];
 	unsigned count;
 
 	if (sign == NULL)
 		return EVP_MD_CTX_size (o->ctx);
 
-	if (!EVP_SignFinal (o->ctx, buf, &count, k))
+	if (!EVP_SignFinal (o->ctx, buf, &count, o->capi->key))
 		return 0;
 
 	if (count > len)
@@ -139,10 +139,7 @@ int capi_hash_sign (struct capi_hash *o, void *sign, unsigned len,
 	return count;
 }
 
-int capi_hash_verify (struct capi_hash *o, const void *sign, unsigned len,
-		      const struct capi_key *key)
+int capi_hash_verify (struct capi_hash *o, const void *sign, unsigned len)
 {
-	EVP_PKEY *k = (void *) key;
-
-	return EVP_VerifyFinal (o->ctx, sign, len, k);
+	return EVP_VerifyFinal (o->ctx, sign, len, o->capi->key);
 }
