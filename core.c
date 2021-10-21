@@ -21,7 +21,8 @@
 #include "misc.h"
 
 struct capi {
-	const char *name;  /* key storage name */
+	const char *type;		/* key type		*/
+	const char *name;		/* key storage name	*/
 	EVP_PKEY *private, *flash;
 	STACK_OF (X509) *chain;
 };
@@ -111,6 +112,7 @@ struct capi *capi_alloc (const char *prov, const char *type, const char *name)
 	OpenSSL_add_all_algorithms ();
 	OPENSSL_config (NULL);
 #endif
+	o->type    = type;
 	o->name    = name;
 	o->private = NULL;
 	o->flash   = NULL;
