@@ -134,7 +134,7 @@ int capi_hash_sign (struct capi_hash *o, void *sign, size_t len)
 	EVP_MD_CTX *c;
 	int ok;
 
-	unsigned size = EVP_PKEY_size (o->capi->key);
+	const unsigned size = EVP_PKEY_size (o->capi->key);
 	unsigned char buf[size];
 	unsigned count;
 
