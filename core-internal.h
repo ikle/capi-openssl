@@ -11,10 +11,12 @@
 
 #include <stddef.h>
 
+#include <openssl/engine.h>
 #include <openssl/evp.h>
 #include <openssl/x509.h>
 
 struct capi {
+	ENGINE *engine;
 	const char *type;		/* key type			*/
 	const char *name;		/* key storage name		*/
 	EVP_PKEY *key, *flash;		/* private and ephemeral keys	*/

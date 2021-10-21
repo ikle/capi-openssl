@@ -106,6 +106,7 @@ struct capi *capi_alloc (const char *prov, const char *type, const char *name)
 	OpenSSL_add_all_algorithms ();
 	OPENSSL_config (NULL);
 #endif
+	o->engine  = prov != NULL ? ENGINE_by_id (prov) : NULL;
 	o->type    = type;
 	o->name    = name;
 	o->key     = NULL;
@@ -123,6 +124,7 @@ struct capi *capi_alloc (const char *prov, const char *type, const char *name)
 
 	return o;
 no_key:
+	ENGINE_free (o->engine);
 	free (o);
 	return NULL;
 }
@@ -135,6 +137,7 @@ void capi_free (struct capi *o)
 	sk_X509_pop_free (o->chain, X509_free);
 	EVP_PKEY_free (o->flash);
 	EVP_PKEY_free (o->key);
+	ENGINE_free (o->engine);
 	free (o);
 }
 

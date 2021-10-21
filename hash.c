@@ -43,7 +43,7 @@ struct capi_hash *capi_hash_alloc (struct capi *capi, const char *algo)
 	if ((o->ctx = EVP_MD_CTX_new ()) == NULL)
 		goto no_ctx;
 
-	if (!EVP_DigestInit_ex (o->ctx, md, NULL))
+	if (!EVP_DigestInit_ex (o->ctx, md, capi->engine))
 		goto no_init;
 
 	return o;
