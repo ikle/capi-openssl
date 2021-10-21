@@ -131,6 +131,9 @@ int capi_hash_final (struct capi_hash *o, void *md, size_t len)
 
 int capi_hash_sign (struct capi_hash *o, void *sign, size_t len)
 {
+	EVP_MD_CTX *c;
+	int ok;
+
 	unsigned size = EVP_PKEY_size (o->capi->key);
 	unsigned char buf[size];
 	unsigned count;
@@ -138,7 +141,12 @@ int capi_hash_sign (struct capi_hash *o, void *sign, size_t len)
 	if (sign == NULL)
 		return EVP_MD_CTX_size (o->ctx);
 
-	if (!EVP_SignFinal (o->ctx, buf, &count, o->capi->key))
+	ok = (c = md_ctx_clone (o)) != NULL &&
+	     EVP_SignFinal (c, buf, &count, o->capi->key) == 1;
+
+	EVP_MD_CTX_free (c);
+
+	if (!ok)
 		return 0;
 
 	if (count > len)
@@ -150,5 +158,12 @@ int capi_hash_sign (struct capi_hash *o, void *sign, size_t len)
 
 int capi_hash_verify (struct capi_hash *o, const void *sign, size_t len)
 {
-	return EVP_VerifyFinal (o->ctx, sign, len, o->capi->key);
+	EVP_MD_CTX *c;
+	int ok;
+
+	ok = (c = md_ctx_clone (o)) != NULL &&
+	     EVP_VerifyFinal (c, sign, len, o->capi->key) == 1;
+
+	EVP_MD_CTX_free (c);
+	return ok;
 }
