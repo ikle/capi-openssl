@@ -68,22 +68,6 @@ static EVP_MD_CTX *md_ctx_clone (struct capi_hash *o)
 	return NULL;
 }
 
-struct capi_hash *capi_hash_clone (struct capi_hash *o)
-{
-	struct capi_hash *copy;
-
-	if ((copy = malloc (sizeof (*copy))) == NULL)
-		return NULL;
-
-	copy->capi = o->capi;
-
-	if ((copy->ctx = md_ctx_clone (o)) != NULL)
-		return copy;
-
-	free (copy);
-	return NULL;
-}
-
 void capi_hash_free (struct capi_hash *o)
 {
 	if (o == NULL)

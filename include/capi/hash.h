@@ -12,7 +12,6 @@
 #include <capi/core.h>
 
 struct capi_hash *capi_hash_alloc (struct capi *o, const char *algo);
-struct capi_hash *capi_hash_clone (struct capi_hash *o);
 void capi_hash_free (struct capi_hash *o);
 
 size_t capi_hash_size (struct capi_hash *o);
