@@ -8,9 +8,8 @@
 
 #include <string.h>
 
-#include <openssl/evp.h>
-
 #include <capi/hash.h>
+#include <openssl/evp.h>
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 
