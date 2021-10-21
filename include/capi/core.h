@@ -38,8 +38,8 @@
  * entity certificate, the second one is it's CA certificate and so on.
  *
  * Returns the size of certificate at the specified position or 0 if it is
- * absent at specified position. If the supplied buffer is large enough to
- * store certificate object then it is written into it.
+ * absent. If the supplied buffer is large enough to store certificate
+ * object then it is written into it.
  */
 
 struct capi *capi_alloc (const char *prov, const char *type, const char *name);
