@@ -54,6 +54,20 @@ no_ctx:
 	return NULL;
 }
 
+static EVP_MD_CTX *md_ctx_clone (struct capi_hash *o)
+{
+	EVP_MD_CTX *c;
+
+	if ((c = EVP_MD_CTX_new ()) == NULL)
+		return NULL;
+
+	if (EVP_MD_CTX_copy_ex (c, o->ctx))
+		return c;
+
+	EVP_MD_CTX_free (c);
+	return NULL;
+}
+
 struct capi_hash *capi_hash_clone (struct capi_hash *o)
 {
 	struct capi_hash *copy;
@@ -63,14 +77,9 @@ struct capi_hash *capi_hash_clone (struct capi_hash *o)
 
 	copy->capi = o->capi;
 
-	if ((copy->ctx = EVP_MD_CTX_new ()) == NULL)
-		goto no_ctx;
-
-	if (EVP_MD_CTX_copy_ex (copy->ctx, o->ctx))
+	if ((copy->ctx = md_ctx_clone (o)) != NULL)
 		return copy;
 
-	EVP_MD_CTX_free (copy->ctx);
-no_ctx:
 	free (copy);
 	return NULL;
 }
