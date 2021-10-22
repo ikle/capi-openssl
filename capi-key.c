@@ -48,29 +48,29 @@ struct param {
 	EVP_PKEY *params;
 };
 
-static int param_init (struct param *o, const char *name)
+static int param_init (struct param *o, const char *type)
 {
 	o->params = NULL;
 
-	if (strcmp (name, "ec-p-256") == 0) {
+	if (strcmp (type, "ec-p-256") == 0) {
 		o->type = EVP_PKEY_EC;
 		o->n = NID_X9_62_prime256v1;
 	}
-	else if (strncmp (name, "ec-", 3) == 0) {
+	else if (strncmp (type, "ec-", 3) == 0) {
 		o->type = EVP_PKEY_EC;
-		o->n = OBJ_sn2nid (name + 3);
+		o->n = OBJ_sn2nid (type + 3);
 	}
-	else if (strncmp (name, "rsa-", 4) == 0) {
+	else if (strncmp (type, "rsa-", 4) == 0) {
 		o->type = EVP_PKEY_RSA;
-		o->n = atoi (name + 4);
+		o->n = atoi (type + 4);
 	}
-	else if (strncmp (name, "dsa-", 4) == 0) {
+	else if (strncmp (type, "dsa-", 4) == 0) {
 		o->type = EVP_PKEY_DSA;
-		o->n = atoi (name + 4);
+		o->n = atoi (type + 4);
 	}
-	else if (strncmp (name, "dh-", 3) == 0) {
+	else if (strncmp (type, "dh-", 3) == 0) {
 		o->type = EVP_PKEY_DH;
-		o->n = atoi (name + 3);
+		o->n = atoi (type + 3);
 	}
 	else
 		return 0;  /* not implemented */
@@ -109,11 +109,11 @@ static int param_init_keygen (struct param *o, EVP_PKEY_CTX *c)
 }
 
 static
-int param_init_params (struct param *o, struct capi *capi, const char *name)
+int param_init_params (struct param *o, struct capi *capi, const char *type)
 {
 	EVP_PKEY_CTX *c;
 
-	if (!param_init (o, name))
+	if (!param_init (o, type))
 		return 0;
 
 	if ((c = EVP_PKEY_CTX_new_id (o->type, capi->engine)) == NULL)
