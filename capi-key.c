@@ -80,6 +80,9 @@ static int param_init_paramgen (struct param *o, EVP_PKEY_CTX *c)
 {
 	o->params = NULL;
 
+	if (EVP_PKEY_paramgen_init (c) <= 0)
+		return 0;
+
 	switch (o->type) {
 	case EVP_PKEY_EC:
 		return EVP_PKEY_CTX_set_ec_paramgen_curve_nid (c, o->n) > 0;
@@ -105,7 +108,7 @@ int param_init_params (struct param *o, struct capi *capi, const char *name)
 	if ((c = EVP_PKEY_CTX_new_id (o->type, capi->engine)) == NULL)
 		return 0;
 
-	if (EVP_PKEY_paramgen_init (c) <= 0 || !param_init_paramgen (o, c))
+	if (!param_init_paramgen (o, c))
 		goto no_ctx;
 
 	EVP_PKEY_paramgen (c, &o->params);
