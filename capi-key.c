@@ -45,6 +45,7 @@ static EVP_PKEY *capi_load_key (struct capi *o, const char *name)
 
 struct param {
 	int type, n;
+	EVP_PKEY *params;
 };
 
 static int param_init (struct param *o, const char *name)
@@ -77,6 +78,8 @@ static int param_init (struct param *o, const char *name)
 
 static int param_init_paramgen (struct param *o, EVP_PKEY_CTX *c)
 {
+	o->params = NULL;
+
 	switch (o->type) {
 	case EVP_PKEY_EC:
 		return EVP_PKEY_CTX_set_ec_paramgen_curve_nid (c, o->n) > 0;
@@ -95,7 +98,6 @@ static EVP_PKEY *pkey_make_params (struct capi *o, const char *name)
 {
 	struct param p;
 	EVP_PKEY_CTX *c;
-	EVP_PKEY *params = NULL;
 
 	if (!param_init (&p, name))
 		return NULL;
@@ -106,9 +108,9 @@ static EVP_PKEY *pkey_make_params (struct capi *o, const char *name)
 	if (EVP_PKEY_paramgen_init (c) <= 0 || !param_init_paramgen (&p, c))
 		goto no_ctx;
 
-	EVP_PKEY_paramgen (c, &params);
+	EVP_PKEY_paramgen (c, &p.params);
 	EVP_PKEY_CTX_free (c);
-	return params;
+	return p.params;
 no_ctx:
 	EVP_PKEY_CTX_free (c);
 	return NULL;
