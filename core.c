@@ -14,7 +14,7 @@
 #include <openssl/err.h>
 #include <openssl/pem.h>
 
-#include <capi/core.h>
+#include <capi/cert.h>
 
 #include "core-internal.h"
 #include "misc.h"
@@ -26,18 +26,6 @@ static FILE *capi_open_key (struct capi *o)
 	if ((f = file_open ("rb", "%s.key", o->name)) == NULL &&
 	    (f = file_open ("rb", "~/.pki/private/%s.pem", o->name)) == NULL &&
 	    (f = file_open ("rb", "/etc/ssl/private/%s.pem", o->name)) == NULL)
-		return NULL;
-
-	return f;
-}
-
-static FILE *capi_open_cert (struct capi *o)
-{
-	FILE *f;
-
-	if ((f = file_open ("rb", "%s.pem", o->name)) == NULL &&
-	    (f = file_open ("rb", "~/.pki/certs/%s.pem", o->name)) == NULL &&
-	    (f = file_open ("rb", "/etc/ssl/certs/%s.pem", o->name)) == NULL)
 		return NULL;
 
 	return f;
@@ -140,35 +128,6 @@ no_ctx:
 	return NULL;
 }
 
-static STACK_OF (X509) *load_cert_chain (struct capi *o)
-{
-	FILE *f;
-	STACK_OF (X509) *chain;
-	X509 *cert;
-
-	if ((f = capi_open_cert (o)) == NULL)
-		return NULL;
-
-	if ((chain = sk_X509_new_null ()) == NULL)
-		goto no_chain;
-
-	ERR_set_mark ();
-
-	while ((cert = PEM_read_X509 (f, NULL, NULL, NULL)) != NULL)
-		if (!sk_X509_push (chain, cert))
-			goto no_push;
-
-	ERR_pop_to_mark ();
-	fclose (f);
-	return chain;
-no_push:
-	X509_free (cert);
-	sk_X509_pop_free (chain, X509_free);
-no_chain:
-	fclose (f);
-	return NULL;
-}
-
 struct capi *capi_alloc (const char *prov, const char *type, const char *name)
 {
 	struct capi *o;
@@ -213,7 +172,7 @@ void capi_free (struct capi *o)
 	if (o == NULL)
 		return;
 
-	sk_X509_pop_free (o->chain, X509_free);
+	capi_cert_free (o->chain);
 	EVP_PKEY_free (o->flash);
 	EVP_PKEY_free (o->key);
 	ENGINE_free (o->engine);
@@ -228,9 +187,9 @@ const struct capi_key *capi_get_key (struct capi *o)
 const struct capi_cert *capi_get_cert (struct capi *o)
 {
 	if (o->chain == NULL && o->name != NULL)
-		o->chain = load_cert_chain (o);
+		o->chain = capi_cert_alloc (o, o->name);
 
-	return (void *) o->chain;
+	return o->chain;
 }
 
 static X509 *get_cert_at (struct capi *o, int i)
