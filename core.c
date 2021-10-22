@@ -56,9 +56,88 @@ static EVP_PKEY *load_key (struct capi *o)
 	return key;
 }
 
+static EVP_PKEY *pkey_make_params (struct capi *o)
+{
+	int type, n;
+	EVP_PKEY_CTX *c;
+	EVP_PKEY *params;
+
+	if (strcmp (o->type, "ec") == 0) {
+		type = EVP_PKEY_EC;
+		n = NID_X9_62_prime256v1;
+	}
+	else if (strncmp (o->type, "ec-", 3) == 0) {
+		type = EVP_PKEY_EC;
+		n = OBJ_sn2nid (o->type + 3);
+	}
+	else if (strncmp (o->type, "rsa-", 4) == 0) {
+		type = EVP_PKEY_RSA;
+		n = atoi (o->type + 4);
+	}
+	else if (strncmp (o->type, "dsa-", 4) == 0) {
+		type = EVP_PKEY_DSA;
+		n = atoi (o->type + 4);
+	}
+	else if (strncmp (o->type, "dh-", 3) == 0) {
+		type = EVP_PKEY_DH;
+		n = atoi (o->type + 3);
+	}
+	else
+		return NULL;  /* not implemented */
+
+	if ((c = EVP_PKEY_CTX_new_id (type, o->engine)) == NULL)
+		return NULL;
+
+	if (EVP_PKEY_paramgen_init (c) <= 0)
+		goto no_ctx;
+
+	switch (type) {
+	case EVP_PKEY_EC:
+		n = EVP_PKEY_CTX_set_ec_paramgen_curve_nid (c, n);
+		break;
+	case EVP_PKEY_RSA:
+		n = EVP_PKEY_CTX_set_rsa_keygen_bits (c, n);
+		break;
+	case EVP_PKEY_DSA:
+		n = EVP_PKEY_CTX_set_dsa_paramgen_bits (c, n);
+		break;
+	case EVP_PKEY_DH:
+		n = EVP_PKEY_CTX_set_dh_paramgen_prime_len (c, n);
+		break;
+	}
+
+	n = n > 0 && EVP_PKEY_paramgen (c, &params) > 0;
+
+	EVP_PKEY_CTX_free (c);
+	return n > 0 ? params : NULL;
+no_ctx:
+	EVP_PKEY_CTX_free (c);
+	return NULL;
+}
+
 static EVP_PKEY *generate_key (struct capi *o)
 {
-	return NULL;  /* not implemented yet */
+	EVP_PKEY *params = NULL, *key;
+	EVP_PKEY_CTX *c;
+	int ok;
+
+	if ((params = pkey_make_params (o)) == NULL)
+		return NULL;
+
+	if ((c = EVP_PKEY_CTX_new (params, o->engine)) == NULL)
+		return NULL;
+
+	if (EVP_PKEY_paramgen_init (c) <= 0)
+		goto no_ctx;
+
+	ok = EVP_PKEY_keygen (c, &key) > 0;
+
+	EVP_PKEY_free(params);
+	EVP_PKEY_CTX_free (c);
+	return ok ? key : NULL;
+no_ctx:
+	EVP_PKEY_CTX_free (c);
+	return NULL;
 }
 
 static STACK_OF (X509) *load_cert_chain (struct capi *o)
