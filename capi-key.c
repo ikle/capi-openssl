@@ -86,12 +86,23 @@ static int param_init_paramgen (struct param *o, EVP_PKEY_CTX *c)
 	switch (o->type) {
 	case EVP_PKEY_EC:
 		return EVP_PKEY_CTX_set_ec_paramgen_curve_nid (c, o->n) > 0;
-	case EVP_PKEY_RSA:
-		return EVP_PKEY_CTX_set_rsa_keygen_bits (c, o->n) > 0;
 	case EVP_PKEY_DSA:
 		return EVP_PKEY_CTX_set_dsa_paramgen_bits (c, o->n) > 0;
 	case EVP_PKEY_DH:
 		return EVP_PKEY_CTX_set_dh_paramgen_prime_len (c, o->n) > 0;
+	}
+
+	return 1;
+}
+
+static int param_init_keygen (struct param *o, EVP_PKEY_CTX *c)
+{
+	if (EVP_PKEY_keygen_init (c) <= 0)
+		return 0;
+
+	switch (o->type) {
+	case EVP_PKEY_RSA:
+		return EVP_PKEY_CTX_set_rsa_keygen_bits (c, o->n) > 0;
 	}
 
 	return 1;
@@ -131,7 +142,7 @@ static EVP_PKEY *capi_gen_key (struct capi *o, const char *type)
 	if ((c = EVP_PKEY_CTX_new (p.params, o->engine)) == NULL)
 		return NULL;
 
-	if (EVP_PKEY_keygen_init (c) <= 0)
+	if (!param_init_keygen (&p, c))
 		goto no_init;
 
 	EVP_PKEY_keygen (c, &key);
