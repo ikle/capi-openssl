@@ -62,7 +62,7 @@ static EVP_PKEY *pkey_make_params (struct capi *o)
 	EVP_PKEY_CTX *c;
 	EVP_PKEY *params;
 
-	if (strcmp (o->type, "ec") == 0) {
+	if (strcmp (o->type, "ec-p-256") == 0) {
 		type = EVP_PKEY_EC;
 		n = NID_X9_62_prime256v1;
 	}
