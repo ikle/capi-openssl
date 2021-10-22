@@ -43,58 +43,70 @@ static EVP_PKEY *capi_load_key (struct capi *o, const char *name)
 	return key;
 }
 
+struct param {
+	int type, n;
+};
+
+static int param_init (struct param *o, const char *name)
+{
+	if (strcmp (name, "ec-p-256") == 0) {
+		o->type = EVP_PKEY_EC;
+		o->n = NID_X9_62_prime256v1;
+	}
+	else if (strncmp (name, "ec-", 3) == 0) {
+		o->type = EVP_PKEY_EC;
+		o->n = OBJ_sn2nid (name + 3);
+	}
+	else if (strncmp (name, "rsa-", 4) == 0) {
+		o->type = EVP_PKEY_RSA;
+		o->n = atoi (name + 4);
+	}
+	else if (strncmp (name, "dsa-", 4) == 0) {
+		o->type = EVP_PKEY_DSA;
+		o->n = atoi (name + 4);
+	}
+	else if (strncmp (name, "dh-", 3) == 0) {
+		o->type = EVP_PKEY_DH;
+		o->n = atoi (name + 3);
+	}
+	else
+		return 0;  /* not implemented */
+
+	return 1;
+}
+
+static int param_init_paramgen (struct param *o, EVP_PKEY_CTX *c)
+{
+	switch (o->type) {
+	case EVP_PKEY_EC:
+		return EVP_PKEY_CTX_set_ec_paramgen_curve_nid (c, o->n) > 0;
+	case EVP_PKEY_RSA:
+		return EVP_PKEY_CTX_set_rsa_keygen_bits (c, o->n) > 0;
+	case EVP_PKEY_DSA:
+		return EVP_PKEY_CTX_set_dsa_paramgen_bits (c, o->n) > 0;
+	case EVP_PKEY_DH:
+		return EVP_PKEY_CTX_set_dh_paramgen_prime_len (c, o->n) > 0;
+	}
+
+	return 1;
+}
+
 static EVP_PKEY *pkey_make_params (struct capi *o, const char *name)
 {
-	int type, n;
+	struct param p;
 	EVP_PKEY_CTX *c;
 	EVP_PKEY *params = NULL;
 
-	if (strcmp (name, "ec-p-256") == 0) {
-		type = EVP_PKEY_EC;
-		n = NID_X9_62_prime256v1;
-	}
-	else if (strncmp (name, "ec-", 3) == 0) {
-		type = EVP_PKEY_EC;
-		n = OBJ_sn2nid (name + 3);
-	}
-	else if (strncmp (name, "rsa-", 4) == 0) {
-		type = EVP_PKEY_RSA;
-		n = atoi (name + 4);
-	}
-	else if (strncmp (name, "dsa-", 4) == 0) {
-		type = EVP_PKEY_DSA;
-		n = atoi (name + 4);
-	}
-	else if (strncmp (name, "dh-", 3) == 0) {
-		type = EVP_PKEY_DH;
-		n = atoi (name + 3);
-	}
-	else
-		return NULL;  /* not implemented */
-
-	if ((c = EVP_PKEY_CTX_new_id (type, o->engine)) == NULL)
+	if (!param_init (&p, name))
 		return NULL;
 
-	if (EVP_PKEY_paramgen_init (c) <= 0)
+	if ((c = EVP_PKEY_CTX_new_id (p.type, o->engine)) == NULL)
+		return NULL;
+
+	if (EVP_PKEY_paramgen_init (c) <= 0 || !param_init_paramgen (&p, c))
 		goto no_ctx;
 
-	switch (type) {
-	case EVP_PKEY_EC:
-		n = EVP_PKEY_CTX_set_ec_paramgen_curve_nid (c, n);
-		break;
-	case EVP_PKEY_RSA:
-		n = EVP_PKEY_CTX_set_rsa_keygen_bits (c, n);
-		break;
-	case EVP_PKEY_DSA:
-		n = EVP_PKEY_CTX_set_dsa_paramgen_bits (c, n);
-		break;
-	case EVP_PKEY_DH:
-		n = EVP_PKEY_CTX_set_dh_paramgen_prime_len (c, n);
-		break;
-	}
-
-	n = n > 0 && EVP_PKEY_paramgen (c, &params) > 0;
-
+	EVP_PKEY_paramgen (c, &params);
 	EVP_PKEY_CTX_free (c);
 	return params;
 no_ctx:
