@@ -10,6 +10,7 @@
 #include <string.h>
 
 #include <capi/hash.h>
+#include <capi/key.h>
 #include <openssl/evp.h>
 
 #include "core-internal.h"
@@ -118,7 +119,7 @@ int capi_hash_sign (struct capi_hash *o, void *sign, size_t len)
 	EVP_MD_CTX *c;
 	int ok;
 
-	const unsigned size = EVP_PKEY_size (o->capi->key);
+	const size_t size = capi_key_size (o->capi->key);
 	unsigned char buf[size];
 	unsigned count;
 
@@ -126,7 +127,7 @@ int capi_hash_sign (struct capi_hash *o, void *sign, size_t len)
 		return EVP_MD_CTX_size (o->ctx);
 
 	ok = (c = md_ctx_clone (o)) != NULL &&
-	     EVP_SignFinal (c, buf, &count, o->capi->key) == 1;
+	     EVP_SignFinal (c, buf, &count, (void *) o->capi->key) == 1;
 
 	EVP_MD_CTX_free (c);
 
@@ -146,7 +147,7 @@ int capi_hash_verify (struct capi_hash *o, const void *sign, size_t len)
 	int ok;
 
 	ok = (c = md_ctx_clone (o)) != NULL &&
-	     EVP_VerifyFinal (c, sign, len, o->capi->key) == 1;
+	     EVP_VerifyFinal (c, sign, len, (void *) o->capi->key) == 1;
 
 	EVP_MD_CTX_free (c);
 	return ok;
