@@ -109,12 +109,12 @@ int param_init_params (struct param *o, struct capi *capi, const char *name)
 		return 0;
 
 	if (!param_init_paramgen (o, c))
-		goto no_ctx;
+		goto no_init;
 
 	EVP_PKEY_paramgen (c, &o->params);
 	EVP_PKEY_CTX_free (c);
 	return 1;
-no_ctx:
+no_init:
 	EVP_PKEY_CTX_free (c);
 	return 0;
 }
@@ -132,14 +132,14 @@ static EVP_PKEY *capi_gen_key (struct capi *o, const char *type)
 		return NULL;
 
 	if (EVP_PKEY_keygen_init (c) <= 0)
-		goto no_ctx;
+		goto no_init;
 
 	EVP_PKEY_keygen (c, &key);
 
 	EVP_PKEY_free(p.params);
 	EVP_PKEY_CTX_free (c);
 	return key;
-no_ctx:
+no_init:
 	EVP_PKEY_CTX_free (c);
 	return NULL;
 }
