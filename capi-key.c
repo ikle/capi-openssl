@@ -94,37 +94,38 @@ static int param_init_paramgen (struct param *o, EVP_PKEY_CTX *c)
 	return 1;
 }
 
-static EVP_PKEY *pkey_make_params (struct capi *o, const char *name)
+static
+int param_init_params (struct param *o, struct capi *capi, const char *name)
 {
-	struct param p;
 	EVP_PKEY_CTX *c;
 
-	if (!param_init (&p, name))
-		return NULL;
+	if (!param_init (o, name))
+		return 0;
 
-	if ((c = EVP_PKEY_CTX_new_id (p.type, o->engine)) == NULL)
-		return NULL;
+	if ((c = EVP_PKEY_CTX_new_id (o->type, capi->engine)) == NULL)
+		return 0;
 
-	if (EVP_PKEY_paramgen_init (c) <= 0 || !param_init_paramgen (&p, c))
+	if (EVP_PKEY_paramgen_init (c) <= 0 || !param_init_paramgen (o, c))
 		goto no_ctx;
 
-	EVP_PKEY_paramgen (c, &p.params);
+	EVP_PKEY_paramgen (c, &o->params);
 	EVP_PKEY_CTX_free (c);
-	return p.params;
+	return 1;
 no_ctx:
 	EVP_PKEY_CTX_free (c);
-	return NULL;
+	return 0;
 }
 
 static EVP_PKEY *capi_gen_key (struct capi *o, const char *type)
 {
-	EVP_PKEY *params = NULL, *key = NULL;
+	struct param p;
+	EVP_PKEY *key = NULL;
 	EVP_PKEY_CTX *c;
 
-	if ((params = pkey_make_params (o, type)) == NULL)
+	if (!param_init_params (&p, o, type))
 		return NULL;
 
-	if ((c = EVP_PKEY_CTX_new (params, o->engine)) == NULL)
+	if ((c = EVP_PKEY_CTX_new (p.params, o->engine)) == NULL)
 		return NULL;
 
 	if (EVP_PKEY_keygen_init (c) <= 0)
@@ -132,7 +133,7 @@ static EVP_PKEY *capi_gen_key (struct capi *o, const char *type)
 
 	EVP_PKEY_keygen (c, &key);
 
-	EVP_PKEY_free(params);
+	EVP_PKEY_free(p.params);
 	EVP_PKEY_CTX_free (c);
 	return key;
 no_ctx:
