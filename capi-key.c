@@ -50,6 +50,8 @@ struct param {
 
 static int param_init (struct param *o, const char *name)
 {
+	o->params = NULL;
+
 	if (strcmp (name, "ec-p-256") == 0) {
 		o->type = EVP_PKEY_EC;
 		o->n = NID_X9_62_prime256v1;
@@ -78,8 +80,6 @@ static int param_init (struct param *o, const char *name)
 
 static int param_init_paramgen (struct param *o, EVP_PKEY_CTX *c)
 {
-	o->params = NULL;
-
 	if (EVP_PKEY_paramgen_init (c) <= 0)
 		return 0;
 
