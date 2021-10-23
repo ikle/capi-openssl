@@ -15,6 +15,7 @@
 
 #include <capi/key.h>
 
+#include "capi-key.h"
 #include "core-internal.h"
 #include "misc.h"
 
@@ -158,20 +159,47 @@ no_init:
 struct capi_key *capi_key_alloc (struct capi *capi, const char *type,
 				 const char *name)
 {
-	if (name != NULL)
-		return (void *) capi_load_key (capi, name);
+	struct capi_key *o;
 
-	return (void *) capi_gen_key (capi, type);
+	if ((o = malloc (sizeof (*o))) == NULL)
+		return NULL;
+
+	o->capi = capi;
+	o->type = CAPI_KEY_PKEY;
+
+	o->pkey = (name != NULL) ?
+		capi_load_key (capi, name) :
+		capi_gen_key (capi, type);
+
+	if (o->pkey == NULL)
+		goto no_pkey;
+
+	return o;
+no_pkey:
+	free (o);
+	return NULL;
 }
 
 void capi_key_free (struct capi_key *o)
 {
-	EVP_PKEY *key = (void *) o;
+	if (o == NULL)
+		return;
 
-	EVP_PKEY_free (key);
+	if (o->type == CAPI_KEY_RAW)
+		OPENSSL_cleanse (o->raw.data, o->raw.len);
+
+	if (o->type == CAPI_KEY_PKEY)
+		EVP_PKEY_free (o->pkey);
+
+	free (o);
 }
 
 size_t capi_key_size (struct capi_key *o)
 {
-	return EVP_PKEY_size ((void *) o);
+	switch (o->type) {
+	case CAPI_KEY_RAW:	return o->raw.len;
+	case CAPI_KEY_PKEY:	return EVP_PKEY_size (o->pkey);
+	}
+
+	return 0;
 }

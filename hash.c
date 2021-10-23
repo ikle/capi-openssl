@@ -13,6 +13,7 @@
 #include <capi/key.h>
 #include <openssl/evp.h>
 
+#include "capi-key.h"
 #include "core-internal.h"
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
@@ -123,11 +124,14 @@ int capi_hash_sign (struct capi_hash *o, void *sign, size_t len)
 	unsigned char buf[size];
 	unsigned count;
 
+	if (o->capi->key == NULL || o->capi->key->type != CAPI_KEY_PKEY)
+		return 0;
+
 	if (sign == NULL)
 		return EVP_MD_CTX_size (o->ctx);
 
 	ok = (c = md_ctx_clone (o)) != NULL &&
-	     EVP_SignFinal (c, buf, &count, (void *) o->capi->key) == 1;
+	     EVP_SignFinal (c, buf, &count, o->capi->key->pkey) == 1;
 
 	EVP_MD_CTX_free (c);
 
@@ -146,8 +150,11 @@ int capi_hash_verify (struct capi_hash *o, const void *sign, size_t len)
 	EVP_MD_CTX *c;
 	int ok;
 
+	if (o->capi->key == NULL || o->capi->key->type != CAPI_KEY_PKEY)
+		return 0;
+
 	ok = (c = md_ctx_clone (o)) != NULL &&
-	     EVP_VerifyFinal (c, sign, len, (void *) o->capi->key) == 1;
+	     EVP_VerifyFinal (c, sign, len, o->capi->key->pkey) == 1;
 
 	EVP_MD_CTX_free (c);
 	return ok;
