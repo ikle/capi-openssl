@@ -155,13 +155,13 @@ no_init:
 	return NULL;
 }
 
-struct capi_key *capi_key_alloc (struct capi *o, const char *type,
+struct capi_key *capi_key_alloc (struct capi *capi, const char *type,
 				 const char *name)
 {
 	if (name != NULL)
-		return (void *) capi_load_key (o, name);
+		return (void *) capi_load_key (capi, name);
 
-	return (void *) capi_gen_key (o, type);
+	return (void *) capi_gen_key (capi, type);
 }
 
 void capi_key_free (struct capi_key *o)
