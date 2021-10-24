@@ -34,5 +34,6 @@ struct capi_key {
 };
 
 struct capi_key *capi_key_load (struct capi *o, const char *name);
+struct capi_key *capi_key_raw  (struct capi *o, unsigned len);
 
 #endif  /* CAPI_KEY_INTERNAL_H */
