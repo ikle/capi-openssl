@@ -10,40 +10,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <openssl/crypto.h>
-#include <openssl/err.h>
-#include <openssl/pem.h>
-
 #include <capi/key.h>
 
 #include "capi-core.h"
 #include "capi-key.h"
-#include "misc.h"
-
-static FILE *capi_open_key (struct capi *o, const char *name)
-{
-	FILE *f;
-
-	if ((f = file_open ("rb", "%s.key", name)) == NULL &&
-	    (f = file_open ("rb", "~/.pki/private/%s.pem", name)) == NULL &&
-	    (f = file_open ("rb", "/etc/ssl/private/%s.pem", name)) == NULL)
-		return NULL;
-
-	return f;
-}
-
-static EVP_PKEY *capi_load_key (struct capi *o, const char *name)
-{
-	FILE *f;
-	EVP_PKEY *key;
-
-	if ((f = capi_open_key (o, name)) == NULL)
-		return NULL;
-
-	key = PEM_read_PrivateKey (f, NULL, NULL, NULL);
-	fclose (f);
-	return key;
-}
 
 struct param {
 	int type, n;
@@ -163,7 +133,9 @@ capi_key_alloc_va (struct capi *capi, const char *type, va_list ap)
 	int kind = CAPI_KEY_PKEY;
 	unsigned extra = 0;
 	struct capi_key *o;
-	const char *name;
+
+	if (strcmp (type, "ref") == 0)
+		return capi_key_load (capi, va_arg (ap, const char *));
 
 	if (strcmp (type, "raw") == 0) {
 		kind = CAPI_KEY_RAW;
@@ -181,13 +153,7 @@ capi_key_alloc_va (struct capi *capi, const char *type, va_list ap)
 		return o;
 	}
 
-	if (strcmp (type, "ref") == 0) {
-		name = va_arg (ap, const char *);
-
-		if ((o->pkey = capi_load_key (capi, name)) == NULL)
-			goto no_pkey;
-	}
-	else if ((o->pkey = capi_gen_key (capi, type)) == NULL)
+	if ((o->pkey = capi_gen_key (capi, type)) == NULL)
 		goto no_pkey;
 
 	return o;
