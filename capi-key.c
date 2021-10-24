@@ -15,8 +15,8 @@
 
 #include <capi/key.h>
 
+#include "capi-core.h"
 #include "capi-key.h"
-#include "core-internal.h"
 #include "misc.h"
 
 static FILE *capi_open_key (struct capi *o, const char *name)

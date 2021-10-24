@@ -13,8 +13,8 @@
 #include <capi/key.h>
 #include <openssl/evp.h>
 
+#include "capi-core.h"
 #include "capi-key.h"
-#include "core-internal.h"
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 

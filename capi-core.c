@@ -17,7 +17,7 @@
 #include <capi/cert.h>
 #include <capi/key.h>
 
-#include "core-internal.h"
+#include "capi-core.h"
 #include "misc.h"
 
 struct capi *capi_alloc (const char *prov, const char *type, const char *name)
