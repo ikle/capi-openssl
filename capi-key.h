@@ -11,6 +11,7 @@
 
 #include <stddef.h>
 
+#include <capi/core.h>
 #include <openssl/evp.h>
 
 enum capi_key_type {
