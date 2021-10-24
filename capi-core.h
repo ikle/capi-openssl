@@ -12,8 +12,6 @@
 #include <stddef.h>
 
 #include <openssl/engine.h>
-#include <openssl/evp.h>
-#include <openssl/x509.h>
 
 struct capi_cert;
 struct capi_key;
