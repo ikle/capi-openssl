@@ -33,6 +33,7 @@ struct capi_key {
 	};
 };
 
+struct capi_key *capi_key_generate (struct capi *o, const char *type);
 struct capi_key *capi_key_load (struct capi *o, const char *name);
 struct capi_key *capi_key_raw  (struct capi *o, size_t len);
 
