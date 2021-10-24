@@ -30,7 +30,7 @@ struct capi_key *capi_key_derive (struct capi_key *o, struct capi_key *peer)
 	if (EVP_PKEY_derive (c, NULL, &len) != 1)
 		goto no_len;
 
-	if ((skey = capi_key_alloc (o->capi, "raw", (unsigned) len)) == NULL)
+	if ((skey = capi_key_raw (o->capi, len)) == NULL)
 		goto no_skey;
 
 	if (EVP_PKEY_derive (c, skey->raw.data, &len) != 1)
