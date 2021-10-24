@@ -85,10 +85,7 @@ int capi_hash_update (struct capi_hash *o, const void *in, size_t len)
 
 int capi_hash_reset (struct capi_hash *o)
 {
-	const EVP_MD *md = EVP_MD_CTX_md (o->ctx);
-
-	return EVP_MD_CTX_reset (o->ctx) &&
-	       EVP_DigestInit_ex (o->ctx, md, o->capi->engine);
+	return EVP_DigestInit_ex (o->ctx, NULL, o->capi->engine);
 }
 
 int capi_hash_final (struct capi_hash *o, void *md, size_t len)
