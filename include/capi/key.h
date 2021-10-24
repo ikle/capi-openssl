@@ -11,8 +11,7 @@
 
 #include <capi/core.h>
 
-struct capi_key *capi_key_alloc (struct capi *o, const char *type,
-				 const char *name);
+struct capi_key *capi_key_alloc (struct capi *o, const char *type, ...);
 void capi_key_free (struct capi_key *o);
 
 size_t capi_key_size (struct capi_key *o);

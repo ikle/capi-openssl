@@ -6,6 +6,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -156,28 +157,55 @@ no_init:
 	return NULL;
 }
 
-struct capi_key *capi_key_alloc (struct capi *capi, const char *type,
-				 const char *name)
+struct capi_key *
+capi_key_alloc_va (struct capi *capi, const char *type, va_list ap)
 {
+	int kind = CAPI_KEY_PKEY;
+	unsigned extra = 0;
 	struct capi_key *o;
+	const char *name;
 
-	if ((o = malloc (sizeof (*o))) == NULL)
+	if (strcmp (type, "raw") == 0) {
+		kind = CAPI_KEY_RAW;
+		extra = va_arg (ap, unsigned);
+	}
+
+	if ((o = malloc (sizeof (*o) + extra)) == NULL)
 		return NULL;
 
 	o->capi = capi;
-	o->type = CAPI_KEY_PKEY;
+	o->type = kind;
 
-	o->pkey = (name != NULL) ?
-		capi_load_key (capi, name) :
-		capi_gen_key (capi, type);
+	if (strcmp (type, "raw") == 0) {
+		o->raw.len = extra;
+		return o;
+	}
 
-	if (o->pkey == NULL)
+	if (strcmp (type, "ref") == 0) {
+		name = va_arg (ap, const char *);
+
+		if ((o->pkey = capi_load_key (capi, name)) == NULL)
+			goto no_pkey;
+	}
+	else if ((o->pkey = capi_gen_key (capi, type)) == NULL)
 		goto no_pkey;
 
 	return o;
 no_pkey:
 	free (o);
 	return NULL;
+}
+
+struct capi_key *capi_key_alloc (struct capi *capi, const char *type, ...)
+{
+	va_list ap;
+	struct capi_key *o;
+
+	va_start (ap, type);
+	o = capi_key_alloc_va (capi, type, ap);
+	va_end (ap);
+
+	return o;
 }
 
 void capi_key_free (struct capi_key *o)
