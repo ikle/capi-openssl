@@ -106,6 +106,7 @@ int capi_hash_final (struct capi_hash *o, void *md, size_t len)
 		count = len;
 
 	memcpy (md, buf, count);
+	OPENSSL_cleanse (buf, sizeof (buf));
 	return count;
 }
 
