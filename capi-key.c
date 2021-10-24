@@ -130,28 +130,16 @@ no_init:
 struct capi_key *
 capi_key_alloc_va (struct capi *capi, const char *type, va_list ap)
 {
-	int kind = CAPI_KEY_PKEY;
-	unsigned extra = 0;
 	struct capi_key *o;
 
 	if (strcmp (type, "ref") == 0)
 		return capi_key_load (capi, va_arg (ap, const char *));
 
-	if (strcmp (type, "raw") == 0) {
-		kind = CAPI_KEY_RAW;
-		extra = va_arg (ap, unsigned);
-	}
-
-	if ((o = malloc (sizeof (*o) + extra)) == NULL)
+	if ((o = malloc (sizeof (*o))) == NULL)
 		return NULL;
 
 	o->capi = capi;
-	o->type = kind;
-
-	if (strcmp (type, "raw") == 0) {
-		o->raw.len = extra;
-		return o;
-	}
+	o->type = CAPI_KEY_PKEY;
 
 	if ((o->pkey = capi_gen_key (capi, type)) == NULL)
 		goto no_pkey;
