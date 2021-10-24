@@ -10,7 +10,7 @@
 
 #include "capi-key.h"
 
-struct capi_key *capi_key_raw (struct capi *capi, unsigned len)
+struct capi_key *capi_key_raw (struct capi *capi, size_t len)
 {
 	struct capi_key *o;
 

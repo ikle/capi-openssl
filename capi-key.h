@@ -20,7 +20,7 @@ enum capi_key_type {
 };
 
 struct capi_key_raw {
-	unsigned len;
+	size_t len;
 	unsigned char data[];
 };
 
@@ -34,6 +34,6 @@ struct capi_key {
 };
 
 struct capi_key *capi_key_load (struct capi *o, const char *name);
-struct capi_key *capi_key_raw  (struct capi *o, unsigned len);
+struct capi_key *capi_key_raw  (struct capi *o, size_t len);
 
 #endif  /* CAPI_KEY_INTERNAL_H */
