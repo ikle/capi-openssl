@@ -50,20 +50,6 @@ no_ctx:
 	return NULL;
 }
 
-static EVP_MD_CTX *md_ctx_clone (struct capi_hash *o)
-{
-	EVP_MD_CTX *c;
-
-	if ((c = EVP_MD_CTX_new ()) == NULL)
-		return NULL;
-
-	if (EVP_MD_CTX_copy_ex (c, o->ctx))
-		return c;
-
-	EVP_MD_CTX_free (c);
-	return NULL;
-}
-
 void capi_hash_free (struct capi_hash *o)
 {
 	if (o == NULL)
@@ -109,9 +95,6 @@ int capi_hash_final (struct capi_hash *o, void *md, size_t len)
 
 int capi_hash_sign (struct capi_hash *o, void *sign, size_t len)
 {
-	EVP_MD_CTX *c;
-	int ok;
-
 	const size_t size = capi_key_size (o->capi->key);
 	unsigned char buf[size];
 	unsigned count;
@@ -122,12 +105,15 @@ int capi_hash_sign (struct capi_hash *o, void *sign, size_t len)
 	if (sign == NULL)
 		return EVP_MD_CTX_size (o->ctx);
 
-	ok = (c = md_ctx_clone (o)) != NULL &&
-	     EVP_SignFinal (c, buf, &count, o->capi->key->pkey) == 1;
-
-	EVP_MD_CTX_free (c);
-
-	if (!ok)
+	/*
+	 * NOTE: The function EVP_SignFinal makes and finalizes temporal
+	 * copy of digest context if it is not already finalized.
+	 *
+	 * WARNING: This behavior is not documented, but judging by the
+	 * analysis of the code, it is supported at least since version
+	 * 1.0.0 and up to current 3.0.
+	 */
+	if (EVP_SignFinal (o->ctx, buf, &count, o->capi->key->pkey) != 1)
 		return 0;
 
 	if (count > len)
@@ -139,15 +125,16 @@ int capi_hash_sign (struct capi_hash *o, void *sign, size_t len)
 
 int capi_hash_verify (struct capi_hash *o, const void *sign, size_t len)
 {
-	EVP_MD_CTX *c;
-	int ok;
-
 	if (o->capi->key == NULL || o->capi->key->type != CAPI_KEY_PKEY)
 		return 0;
 
-	ok = (c = md_ctx_clone (o)) != NULL &&
-	     EVP_VerifyFinal (c, sign, len, o->capi->key->pkey) == 1;
-
-	EVP_MD_CTX_free (c);
-	return ok;
+	/*
+	 * NOTE: The function EVP_VerifyFinal makes and finalizes temporal
+	 * copy of digest context if it is not already finalized.
+	 *
+	 * WARNING: This behavior is not documented, but judging by the
+	 * analysis of the code, it is supported at least since version
+	 * 1.0.0 and up to current 3.0.
+	 */
+	return EVP_VerifyFinal (o->ctx, sign, len, o->capi->key->pkey) == 1;
 }
