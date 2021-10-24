@@ -110,7 +110,7 @@ static EVP_PKEY *capi_gen_key (struct capi *o, const char *type)
 		return NULL;
 
 	if ((c = EVP_PKEY_CTX_new (p.params, o->engine)) == NULL)
-		return NULL;
+		goto no_ctx;
 
 	if (!param_init_keygen (&p, c))
 		goto no_init;
@@ -121,6 +121,8 @@ static EVP_PKEY *capi_gen_key (struct capi *o, const char *type)
 	EVP_PKEY_CTX_free (c);
 	return key;
 no_init:
+	EVP_PKEY_free(p.params);
+no_ctx:
 	EVP_PKEY_CTX_free (c);
 	return NULL;
 }
