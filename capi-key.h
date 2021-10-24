@@ -33,4 +33,6 @@ struct capi_key {
 	};
 };
 
+struct capi_key *capi_key_load (struct capi *o, const char *name);
+
 #endif  /* CAPI_KEY_INTERNAL_H */
