@@ -11,9 +11,8 @@
 
 #include <capi/hash.h>
 #include <capi/key.h>
-#include <openssl/evp.h>
 
-#include "capi-core.h"
+#include "capi-hash.h"
 #include "capi-key.h"
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
@@ -23,11 +22,6 @@
 #define EVP_MD_CTX_reset(o)	EVP_MD_CTX_cleanup (o)
 
 #endif
-
-struct capi_hash {
-	struct capi *capi;
-	EVP_MD_CTX  *ctx;
-};
 
 struct capi_hash *capi_hash_alloc (struct capi *capi, const char *algo)
 {
