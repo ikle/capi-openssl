@@ -59,11 +59,6 @@ void capi_hash_free (struct capi_hash *o)
 	free (o);
 }
 
-size_t capi_hash_size (struct capi_hash *o)
-{
-	return EVP_MD_CTX_size (o->ctx);
-}
-
 int capi_hash_update (struct capi_hash *o, const void *in, size_t len)
 {
 	return EVP_DigestUpdate (o->ctx, in, len);

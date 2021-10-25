@@ -14,8 +14,6 @@
 struct capi_hash *capi_hash_alloc (struct capi *o, const char *algo);
 void capi_hash_free (struct capi_hash *o);
 
-size_t capi_hash_size (struct capi_hash *o);
-
 int capi_hash_update (struct capi_hash *o, const void *in, size_t len);
 int capi_hash_reset  (struct capi_hash *o);
 int capi_hash_final  (struct capi_hash *o, void *md, size_t len);
