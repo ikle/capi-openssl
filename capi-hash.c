@@ -53,7 +53,7 @@ int capi_hash_sign (struct capi_hash *o, void *sign, size_t len)
 		return 0;
 
 	if (sign == NULL)
-		return EVP_MD_CTX_size (o->ctx);
+		return size;
 
 	/*
 	 * NOTE: The function EVP_SignFinal makes and finalizes temporal
