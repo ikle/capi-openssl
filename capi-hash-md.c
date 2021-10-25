@@ -20,7 +20,8 @@
 
 #endif
 
-static struct capi_hash *capi_md_alloc (struct capi *capi, const char *algo)
+static struct capi_hash *
+capi_md_alloc (struct capi *capi, const char *algo, va_list ap)
 {
 	const EVP_MD *md;
 	struct capi_hash *o;

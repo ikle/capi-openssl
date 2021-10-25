@@ -9,6 +9,7 @@
 #ifndef CAPI_HASH_INTERNAL_H
 #define CAPI_HASH_INTERNAL_H  1
 
+#include <stdarg.h>
 #include <stddef.h>
 
 #include <openssl/evp.h>
@@ -28,7 +29,7 @@ struct capi_hash {
 };
 
 struct capi_hash_core {
-	struct capi_hash *(*alloc) (struct capi *capi, const char *algo);
+	struct capi_hash *(*alloc) (struct capi *capi, const char *algo, va_list ap);
 	void (*free) (struct capi_hash *o);
 
 	int (*reset) (struct capi_hash *o);

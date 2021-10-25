@@ -14,12 +14,19 @@
 #include "capi-hash.h"
 #include "capi-key.h"
 
-struct capi_hash *capi_hash_alloc (struct capi *capi, const char *algo)
+struct capi_hash *capi_hash_alloc (struct capi *capi, const char *algo, ...)
 {
-	if (strncmp (algo, "hmac-" , 5) == 0)
-		return capi_hash_hmac.alloc (capi, algo + 5);
+	va_list ap;
+	struct capi_hash *o;
 
-	return capi_hash_md.alloc (capi, algo);
+	va_start (ap, algo);
+
+	o = (strncmp (algo, "hmac-" , 5) == 0) ?
+		capi_hash_hmac.alloc (capi, algo + 5, ap) :
+		capi_hash_md.alloc (capi, algo, ap);
+
+	va_end (ap);
+	return o;
 }
 
 void capi_hash_free (struct capi_hash *o)

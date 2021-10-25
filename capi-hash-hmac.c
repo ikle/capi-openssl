@@ -34,7 +34,8 @@ static inline void HMAC_CTX_free (HMAC_CTX *o)
 
 #endif
 
-static struct capi_hash *capi_hmac_alloc (struct capi *capi, const char *algo)
+static struct capi_hash *
+capi_hmac_alloc (struct capi *capi, const char *algo, va_list ap)
 {
 	const EVP_MD *md;
 	struct capi_hash *o;
