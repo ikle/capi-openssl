@@ -12,6 +12,7 @@
 #include <capi/hash.h>
 
 #include "capi-hash.h"
+#include "capi-key.h"
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 
@@ -34,13 +35,45 @@ static inline void HMAC_CTX_free (HMAC_CTX *o)
 
 #endif
 
+struct blob {
+	size_t len;
+	const void *data;
+};
+
+static int capi_hmac_key (struct blob *o, va_list ap)
+{
+	const char *type = va_arg (ap, const char *);
+	const struct capi_key *key;
+
+	if (strcmp (type, "password") == 0) {
+		o->data = va_arg (ap, const char *);
+		o->len  = strlen (o->data);
+		return 1;
+	}
+
+	if (strcmp (type, "key") == 0) {
+		key = va_arg (ap, const struct capi_key *);
+
+		if (key->type != CAPI_KEY_RAW)
+			return 0;
+
+		o->len  = key->raw.len;
+		o->data = key->raw.data;
+		return 1;
+	}
+
+	return 0;
+}
+
 static struct capi_hash *
 capi_hmac_alloc (struct capi *capi, const char *algo, va_list ap)
 {
 	const EVP_MD *md;
 	struct capi_hash *o;
+	struct blob key;
 
-	if ((md = EVP_get_digestbyname (algo)) == NULL)
+	if ((md = EVP_get_digestbyname (algo)) == NULL ||
+	    !capi_hmac_key (&key, ap))
 		return NULL;
 
 	if ((o = malloc (sizeof (*o))) == NULL)
@@ -52,7 +85,7 @@ capi_hmac_alloc (struct capi *capi, const char *algo, va_list ap)
 	if ((o->hmac = HMAC_CTX_new ()) == NULL)
 		goto no_ctx;
 
-	if (!HMAC_Init_ex (o->hmac, "", 0, md, capi->engine))
+	if (!HMAC_Init_ex (o->hmac, key.data, key.len, md, capi->engine))
 		goto no_init;
 
 	return o;
