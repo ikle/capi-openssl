@@ -12,6 +12,7 @@
 #include <stddef.h>
 
 #include <openssl/evp.h>
+#include <openssl/hmac.h>
 
 #include "capi-core.h"
 
@@ -22,6 +23,7 @@ struct capi_hash {
 	const struct capi_hash_core *core;
 	union {
 		EVP_MD_CTX *mdc;
+		HMAC_CTX   *hmac;
 	};
 };
 
@@ -36,5 +38,6 @@ struct capi_hash_core {
 };
 
 struct capi_hash_core capi_hash_md;
+struct capi_hash_core capi_hash_hmac;
 
 #endif  /* CAPI_HASH_INTERNAL_H */

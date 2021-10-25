@@ -16,6 +16,9 @@
 
 struct capi_hash *capi_hash_alloc (struct capi *capi, const char *algo)
 {
+	if (strncmp (algo, "hmac-" , 5) == 0)
+		return capi_hash_hmac.alloc (capi, algo + 5);
+
 	return capi_hash_md.alloc (capi, algo);
 }
 
