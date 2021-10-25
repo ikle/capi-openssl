@@ -6,7 +6,6 @@
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
-#include <stdlib.h>
 #include <string.h>
 
 #include <capi/hash.h>
@@ -15,39 +14,9 @@
 #include "capi-hash.h"
 #include "capi-key.h"
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-
-#define EVP_MD_CTX_new()	EVP_MD_CTX_create ()
-#define EVP_MD_CTX_free(o)	EVP_MD_CTX_destroy (o)
-#define EVP_MD_CTX_reset(o)	EVP_MD_CTX_cleanup (o)
-
-#endif
-
 struct capi_hash *capi_hash_alloc (struct capi *capi, const char *algo)
 {
-	const EVP_MD *md;
-	struct capi_hash *o;
-
-	if ((md = EVP_get_digestbyname (algo)) == NULL)
-		return NULL;
-
-	if ((o = malloc (sizeof (*o))) == NULL)
-		return NULL;
-
-	o->capi = capi;
-
-	if ((o->ctx = EVP_MD_CTX_new ()) == NULL)
-		goto no_ctx;
-
-	if (!EVP_DigestInit_ex (o->ctx, md, capi->engine))
-		goto no_init;
-
-	return o;
-no_init:
-	EVP_MD_CTX_free (o->ctx);
-no_ctx:
-	free (o);
-	return NULL;
+	return capi_hash_md.alloc (capi, algo);
 }
 
 void capi_hash_free (struct capi_hash *o)
@@ -55,37 +24,22 @@ void capi_hash_free (struct capi_hash *o)
 	if (o == NULL)
 		return;
 
-	EVP_MD_CTX_free (o->ctx);
-	free (o);
+	o->core->free (o);
 }
 
 int capi_hash_update (struct capi_hash *o, const void *in, size_t len)
 {
-	return EVP_DigestUpdate (o->ctx, in, len);
+	return o->core->update (o, in, len);
 }
 
 int capi_hash_reset (struct capi_hash *o)
 {
-	return EVP_DigestInit_ex (o->ctx, NULL, o->capi->engine);
+	return o->core->reset (o);
 }
 
 int capi_hash_final (struct capi_hash *o, void *md, size_t len)
 {
-	unsigned char buf[EVP_MAX_MD_SIZE];
-	unsigned count;
-
-	if (md == NULL)
-		return EVP_MD_CTX_size (o->ctx);
-
-	if (!EVP_DigestFinal_ex (o->ctx, buf, &count))
-		return 0;
-
-	if (count > len)
-		count = len;
-
-	memcpy (md, buf, count);
-	OPENSSL_cleanse (buf, sizeof (buf));
-	return count;
+	return o->core->final (o, md, len);
 }
 
 int capi_hash_sign (struct capi_hash *o, void *sign, size_t len)
@@ -94,7 +48,8 @@ int capi_hash_sign (struct capi_hash *o, void *sign, size_t len)
 	unsigned char buf[size];
 	unsigned count;
 
-	if (o->capi->key == NULL || o->capi->key->type != CAPI_KEY_PKEY)
+	if (o->capi->key == NULL || o->capi->key->type != CAPI_KEY_PKEY ||
+	    o->core != &capi_hash_md)
 		return 0;
 
 	if (sign == NULL)
@@ -120,7 +75,8 @@ int capi_hash_sign (struct capi_hash *o, void *sign, size_t len)
 
 int capi_hash_verify (struct capi_hash *o, const void *sign, size_t len)
 {
-	if (o->capi->key == NULL || o->capi->key->type != CAPI_KEY_PKEY)
+	if (o->capi->key == NULL || o->capi->key->type != CAPI_KEY_PKEY ||
+	    o->core != &capi_hash_md)
 		return 0;
 
 	/*
