@@ -35,15 +35,15 @@ static struct capi_hash *capi_md_alloc (struct capi *capi, const char *algo)
 	o->capi = capi;
 	o->core = &capi_hash_md;
 
-	if ((o->ctx = EVP_MD_CTX_new ()) == NULL)
+	if ((o->mdc = EVP_MD_CTX_new ()) == NULL)
 		goto no_ctx;
 
-	if (!EVP_DigestInit_ex (o->ctx, md, capi->engine))
+	if (!EVP_DigestInit_ex (o->mdc, md, capi->engine))
 		goto no_init;
 
 	return o;
 no_init:
-	EVP_MD_CTX_free (o->ctx);
+	EVP_MD_CTX_free (o->mdc);
 no_ctx:
 	free (o);
 	return NULL;
@@ -51,18 +51,18 @@ no_ctx:
 
 static void capi_md_free (struct capi_hash *o)
 {
-	EVP_MD_CTX_free (o->ctx);
+	EVP_MD_CTX_free (o->mdc);
 	free (o);
 }
 
 static int capi_md_reset (struct capi_hash *o)
 {
-	return EVP_DigestInit_ex (o->ctx, NULL, o->capi->engine);
+	return EVP_DigestInit_ex (o->mdc, NULL, o->capi->engine);
 }
 
 static int capi_md_update (struct capi_hash *o, const void *in, size_t len)
 {
-	return EVP_DigestUpdate (o->ctx, in, len);
+	return EVP_DigestUpdate (o->mdc, in, len);
 }
 
 static int capi_md_final (struct capi_hash *o, void *md, size_t len)
@@ -71,9 +71,9 @@ static int capi_md_final (struct capi_hash *o, void *md, size_t len)
 	unsigned count;
 
 	if (md == NULL)
-		return EVP_MD_CTX_size (o->ctx);
+		return EVP_MD_CTX_size (o->mdc);
 
-	if (!EVP_DigestFinal_ex (o->ctx, buf, &count))
+	if (!EVP_DigestFinal_ex (o->mdc, buf, &count))
 		return 0;
 
 	if (count > len)

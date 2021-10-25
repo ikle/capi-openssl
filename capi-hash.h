@@ -20,7 +20,9 @@ struct capi_hash_core;
 struct capi_hash {
 	struct capi *capi;
 	const struct capi_hash_core *core;
-	EVP_MD_CTX  *ctx;
+	union {
+		EVP_MD_CTX *mdc;
+	};
 };
 
 struct capi_hash_core {

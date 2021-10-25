@@ -63,7 +63,7 @@ int capi_hash_sign (struct capi_hash *o, void *sign, size_t len)
 	 * analysis of the code, it is supported at least since version
 	 * 1.0.0 and up to current 3.0.
 	 */
-	if (EVP_SignFinal (o->ctx, buf, &count, o->capi->key->pkey) != 1)
+	if (EVP_SignFinal (o->mdc, buf, &count, o->capi->key->pkey) != 1)
 		return 0;
 
 	if (count > len)
@@ -87,5 +87,5 @@ int capi_hash_verify (struct capi_hash *o, const void *sign, size_t len)
 	 * analysis of the code, it is supported at least since version
 	 * 1.0.0 and up to current 3.0.
 	 */
-	return EVP_VerifyFinal (o->ctx, sign, len, o->capi->key->pkey) == 1;
+	return EVP_VerifyFinal (o->mdc, sign, len, o->capi->key->pkey) == 1;
 }
