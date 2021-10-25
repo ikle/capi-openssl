@@ -32,13 +32,6 @@ static inline void HMAC_CTX_free (HMAC_CTX *o)
 	free (o);
 }
 
-static inline HMAC_CTX_reset (HMAC_CTX *o)
-{
-	HMAC_CTX_cleanup (o);
-	HMAC_CTX_init (o);
-	return 1;
-}
-
 #endif
 
 static struct capi_hash *capi_hmac_alloc (struct capi *capi, const char *algo)

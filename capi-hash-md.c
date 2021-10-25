@@ -17,7 +17,6 @@
 
 #define EVP_MD_CTX_new()        EVP_MD_CTX_create ()
 #define EVP_MD_CTX_free(o)      EVP_MD_CTX_destroy (o)
-#define EVP_MD_CTX_reset(o)     EVP_MD_CTX_cleanup (o)
 
 #endif
 
