@@ -32,11 +32,6 @@ static inline void HMAC_CTX_free (HMAC_CTX *o)
 	free (o);
 }
 
-static inline const EVP_MD *HMAC_CTX_get_md (const HMAC_CTX *o)
-{
-	return o->md;
-}
-
 static inline HMAC_CTX_reset (HMAC_CTX *o)
 {
 	HMAC_CTX_cleanup (o);
@@ -96,7 +91,7 @@ static int capi_hmac_final (struct capi_hash *o, void *md, size_t len)
 	unsigned count;
 
 	if (md == NULL)
-		return HMAC_size (HMAC_CTX_get_md (o->hmac));
+		return HMAC_size (o->hmac);
 
 	if (!HMAC_Final (o->hmac, buf, &count))
 		return 0;
