@@ -18,6 +18,7 @@
 #include <capi/key.h>
 
 #include "capi-core.h"
+#include "capi-key.h"
 #include "misc.h"
 
 struct capi *capi_alloc (const char *prov, const char *type, const char *name)
@@ -117,7 +118,7 @@ int capi_pull_key (struct capi *o, void *data, size_t len)
 	    (o->flash = capi_key_alloc (o, o->type, NULL)) == NULL)
 		return 0;
 
-	if (X509_PUBKEY_set (&key, (void *) o->flash) != 1)
+	if (X509_PUBKEY_set (&key, o->flash->pkey) != 1)
 		return 0;
 
 	if ((n = i2d_X509_PUBKEY (key, NULL)) <= len)
