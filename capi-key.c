@@ -12,11 +12,23 @@
 
 #include <capi/key.h>
 
+#include "capi-blob.h"
 #include "capi-key.h"
 
 struct capi_key *
 capi_key_alloc_va (struct capi *capi, const char *type, va_list ap)
 {
+	struct capi_blob key;
+	struct capi_key *o;
+
+	if (capi_blob_init (&key, type, ap)) {
+		if ((o = capi_key_raw (capi, key.len)) != NULL)
+			memcpy (o->raw.data, key.data, key.len);
+
+		capi_blob_fini (&key);
+		return o;
+	}
+
 	if (strcmp (type, "ref") == 0)
 		return capi_key_load (capi, va_arg (ap, const char *));
 
