@@ -68,7 +68,7 @@ int capi_blob_init (struct capi_blob *o, const char *type, va_list ap)
 		o->len  = hex_get_len (o->data);
 
 		if ((o->buf = malloc (o->len)) == NULL)
-			return 0;
+			return -1;
 
 		o->data = hex_read (o->data, o->buf);
 		return 1;

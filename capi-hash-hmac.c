@@ -49,7 +49,7 @@ capi_hmac_alloc (struct capi *capi, const char *algo, va_list ap)
 
 	type = va_arg (ap, const char *);
 
-	if (!capi_blob_init (&key, type, ap))
+	if (capi_blob_init (&key, type, ap) != 1)
 		return NULL;
 
 	if ((o = malloc (sizeof (*o))) == NULL)

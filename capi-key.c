@@ -19,9 +19,13 @@ struct capi_key *
 capi_key_alloc_va (struct capi *capi, const char *type, va_list ap)
 {
 	struct capi_blob key;
+	int ret;
 	struct capi_key *o;
 
-	if (capi_blob_init (&key, type, ap)) {
+	if ((ret = capi_blob_init (&key, type, ap)) < 0)
+		return NULL;
+
+	if (ret == 1) {
 		if ((o = capi_key_raw (capi, key.len)) != NULL)
 			memcpy (o->raw.data, key.data, key.len);
 
