@@ -11,6 +11,7 @@
 
 #include <capi/hash.h>
 
+#include "capi-blob.h"
 #include "capi-hash.h"
 #include "capi-key.h"
 
@@ -35,55 +36,24 @@ static inline void HMAC_CTX_free (HMAC_CTX *o)
 
 #endif
 
-struct blob {
-	size_t len;
-	const void *data;
-};
-
-static int capi_hmac_key (struct blob *o, va_list ap)
-{
-	const char *type = va_arg (ap, const char *);
-	const struct capi_key *key;
-
-	if (strcmp (type, "phrase") == 0) {
-		o->data = va_arg (ap, const char *);
-		o->len  = strlen (o->data);
-		return 1;
-	}
-
-	if (strcmp (type, "blob") == 0) {
-		o->data = va_arg (ap, const void *);
-		o->len  = va_arg (ap, size_t);
-		return 1;
-	}
-
-	if (strcmp (type, "key") == 0) {
-		key = va_arg (ap, const struct capi_key *);
-
-		if (key->type != CAPI_KEY_RAW)
-			return 0;
-
-		o->len  = key->raw.len;
-		o->data = key->raw.data;
-		return 1;
-	}
-
-	return 0;
-}
-
 static struct capi_hash *
 capi_hmac_alloc (struct capi *capi, const char *algo, va_list ap)
 {
 	const EVP_MD *md;
+	const char *type;
+	struct capi_blob key;
 	struct capi_hash *o;
-	struct blob key;
 
-	if ((md = EVP_get_digestbyname (algo)) == NULL ||
-	    !capi_hmac_key (&key, ap))
+	if ((md = EVP_get_digestbyname (algo)) == NULL)
+		return NULL;
+
+	type = va_arg (ap, const char *);
+
+	if (!capi_blob_init (&key, type, ap))
 		return NULL;
 
 	if ((o = malloc (sizeof (*o))) == NULL)
-		return NULL;
+		goto no_hash;
 
 	o->capi = capi;
 	o->core = &capi_hash_hmac;
@@ -94,11 +64,14 @@ capi_hmac_alloc (struct capi *capi, const char *algo, va_list ap)
 	if (!HMAC_Init_ex (o->hmac, key.data, key.len, md, capi->engine))
 		goto no_init;
 
+	capi_blob_fini (&key);
 	return o;
 no_init:
 	HMAC_CTX_free (o->hmac);
 no_ctx:
 	free (o);
+no_hash:
+	capi_blob_fini (&key);
 	return NULL;
 }
 
