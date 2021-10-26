@@ -51,6 +51,12 @@ static int capi_hmac_key (struct blob *o, va_list ap)
 		return 1;
 	}
 
+	if (strcmp (type, "blob") == 0) {
+		o->data = va_arg (ap, const void *);
+		o->len  = va_arg (ap, size_t);
+		return 1;
+	}
+
 	if (strcmp (type, "key") == 0) {
 		key = va_arg (ap, const struct capi_key *);
 
