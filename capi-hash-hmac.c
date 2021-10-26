@@ -45,7 +45,7 @@ static int capi_hmac_key (struct blob *o, va_list ap)
 	const char *type = va_arg (ap, const char *);
 	const struct capi_key *key;
 
-	if (strcmp (type, "password") == 0) {
+	if (strcmp (type, "phrase") == 0) {
 		o->data = va_arg (ap, const char *);
 		o->len  = strlen (o->data);
 		return 1;
