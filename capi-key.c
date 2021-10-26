@@ -58,3 +58,18 @@ size_t capi_key_size (struct capi_key *o)
 
 	return 0;
 }
+
+int capi_key_eq (const struct capi_key *a, const struct capi_key *b)
+{
+	if (a->type != b->type)
+		return 0;
+
+	if (a->type == CAPI_KEY_RAW)
+		return a->raw.len == b->raw.len &&
+		       memcmp (a->raw.data, b->raw.data, a->raw.len) == 0;
+
+	if (a->type == CAPI_KEY_PKEY)
+		return EVP_PKEY_cmp (a->pkey, b->pkey) == 1;
+
+	return 0;
+}
