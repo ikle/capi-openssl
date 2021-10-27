@@ -27,7 +27,7 @@ static FILE *capi_open_key (struct capi *o, const char *name)
 	return f;
 }
 
-struct capi_key *capi_key_load (struct capi *capi, const char *name)
+struct capi_key *capi_key_load (struct capi *capi, const char *name, va_list ap)
 {
 	struct capi_key *o;
 	FILE *f;
