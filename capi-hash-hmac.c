@@ -11,9 +11,9 @@
 
 #include <capi/hash.h>
 
-#include "capi-blob.h"
 #include "capi-hash.h"
 #include "capi-key.h"
+#include "capi-opts.h"
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 
@@ -36,20 +36,24 @@ static inline void HMAC_CTX_free (HMAC_CTX *o)
 
 #endif
 
+static const struct capi_opt opts[] = {
+	{ CAPI_OPT_KEY, "key",     0 },
+	{ CAPI_OPT_BIN, "key-bin", 0 },
+	{ CAPI_OPT_HEX, "key-hex", 0 },
+	{ CAPI_OPT_STR, "key-str", 0 },
+};
+
 static struct capi_hash *
 capi_hmac_alloc (struct capi *capi, const char *algo, va_list ap)
 {
 	const EVP_MD *md;
-	const char *type;
-	struct capi_blob key;
+	struct capi_blob key = { NULL, NULL, 0 };
 	struct capi_hash *o;
 
 	if ((md = EVP_get_digestbyname (algo)) == NULL)
 		return NULL;
 
-	type = va_arg (ap, const char *);
-
-	if (capi_blob_init (&key, type, ap) != 1)
+	if (!capi_set_opts (&key, opts, ARRAY_SIZE (opts), ap))
 		return NULL;
 
 	if ((o = malloc (sizeof (*o))) == NULL)
