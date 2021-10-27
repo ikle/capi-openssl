@@ -114,7 +114,7 @@ int capi_pull_key (struct capi *o, void *data, size_t len)
 	unsigned char *p = data;
 	int n;
 
-	if (o->flash == NULL &&
+	if (o->flash == NULL && o->type != NULL &&
 	    (o->flash = capi_key_alloc (o, o->type, NULL)) == NULL)
 		return 0;
 
