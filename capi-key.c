@@ -29,8 +29,7 @@ static const struct capi_opt opts[] = {
 	{ CAPI_OPT_PTR, "type",    offsetof (struct conf, type) },
 };
 
-struct capi_key *
-capi_key_alloc_va (struct capi *capi, const char *type, va_list ap)
+struct capi_key *capi_key_alloc_va (struct capi *capi, va_list ap)
 {
 	struct conf conf = { NULL, NULL, { NULL, NULL, 0 } };
 	struct capi_key *o;
@@ -51,13 +50,13 @@ capi_key_alloc_va (struct capi *capi, const char *type, va_list ap)
 	return o;
 }
 
-struct capi_key *capi_key_alloc (struct capi *capi, const char *type, ...)
+struct capi_key *capi_key_alloc (struct capi *capi, ...)
 {
 	va_list ap;
 	struct capi_key *o;
 
-	va_start (ap, type);
-	o = capi_key_alloc_va (capi, type, ap);
+	va_start (ap, capi);
+	o = capi_key_alloc_va (capi, ap);
 	va_end (ap);
 
 	return o;
