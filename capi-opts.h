@@ -20,6 +20,7 @@
 
 enum capi_opt_type {
 	CAPI_OPT_NUM	= 0x00,			/* unsigned */
+	CAPI_OPT_PTR	= 0x01,			/* pointer  */
 	CAPI_OPT_BIN	= CAPI_BLOB_BIN,
 	CAPI_OPT_STR	= CAPI_BLOB_STR,
 	CAPI_OPT_KEY	= CAPI_BLOB_KEY,

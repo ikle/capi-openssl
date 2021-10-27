@@ -26,6 +26,7 @@ int capi_set_opts (void *o, const struct capi_opt *opts, size_t n, va_list ap)
 	const struct capi_opt *opt;
 
 	unsigned *np;
+	void **pp;
 	struct capi_blob *b;
 
 	for (
@@ -40,6 +41,12 @@ int capi_set_opts (void *o, const struct capi_opt *opts, size_t n, va_list ap)
 		if (opt->type == CAPI_OPT_NUM) {
 			np = o + opt->offset;
 			*np = va_arg (aq, unsigned);
+			continue;
+		}
+
+		if (opt->type == CAPI_OPT_PTR) {
+			pp = o + opt->offset;
+			*pp = va_arg (aq, void *);
 			continue;
 		}
 
