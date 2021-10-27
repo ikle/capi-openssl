@@ -14,29 +14,41 @@
 
 #include "capi-blob.h"
 #include "capi-key.h"
+#include "capi-opts.h"
+
+struct conf {
+	const char *name, *type;
+	struct capi_blob raw;
+};
+
+static const struct capi_opt opts[] = {
+	{ CAPI_OPT_PTR, "name",    offsetof (struct conf, name) },
+	{ CAPI_OPT_BIN, "raw-bin", offsetof (struct conf, raw)  },
+	{ CAPI_OPT_HEX, "raw-hex", offsetof (struct conf, raw)  },
+	{ CAPI_OPT_STR, "raw-str", offsetof (struct conf, raw)  },
+	{ CAPI_OPT_PTR, "type",    offsetof (struct conf, type) },
+};
 
 struct capi_key *
 capi_key_alloc_va (struct capi *capi, const char *type, va_list ap)
 {
-	struct capi_blob key;
-	int ret;
+	struct conf conf = { NULL, NULL, { NULL, NULL, 0 } };
 	struct capi_key *o;
 
-	if ((ret = capi_blob_init (&key, type, ap)) < 0)
+	if (!capi_set_opts (&conf, opts, ARRAY_SIZE (opts), ap))
 		return NULL;
 
-	if (ret == 1) {
-		if ((o = capi_key_raw (capi, key.len)) != NULL)
-			memcpy (o->raw.data, key.data, key.len);
+	if (conf.name != NULL)
+		o = capi_key_load (capi, conf.name, ap);
+	else
+	if (conf.type != NULL)
+		o = capi_key_generate (capi, conf.name, ap);
+	else
+	if ((o = capi_key_raw (capi, conf.raw.len)) != NULL)
+		memcpy (o->raw.data, conf.raw.data, conf.raw.len);
 
-		capi_blob_fini (&key);
-		return o;
-	}
-
-	if (strcmp (type, "ref") == 0)
-		return capi_key_load (capi, va_arg (ap, const char *), ap);
-
-	return capi_key_generate (capi, type, ap);
+	capi_blob_fini (&conf.raw);
+	return o;
 }
 
 struct capi_key *capi_key_alloc (struct capi *capi, const char *type, ...)

@@ -40,11 +40,12 @@ struct capi *capi_alloc (const char *prov, const char *type, const char *name)
 
 	o->type    = type;
 	o->name    = name;
-	o->key     = type != NULL ? capi_key_alloc (o, type, name, NULL) : NULL;
+	o->key     = NULL;
 	o->flash   = NULL;
 	o->chain   = NULL;
 
-	if (o->key == NULL && name != NULL && type != NULL)
+	if (name != NULL &&
+	    (o->key = capi_key_alloc (o, "name", name, NULL)) == NULL)
 		goto no_key;
 
 	return o;
@@ -115,7 +116,7 @@ int capi_pull_key (struct capi *o, void *data, size_t len)
 	int n;
 
 	if (o->flash == NULL && o->type != NULL &&
-	    (o->flash = capi_key_alloc (o, o->type, NULL)) == NULL)
+	    (o->flash = capi_key_alloc (o, "type", o->type, NULL)) == NULL)
 		return 0;
 
 	if (X509_PUBKEY_set (&key, o->flash->pkey) != 1)
