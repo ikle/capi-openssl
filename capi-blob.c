@@ -94,6 +94,54 @@ int capi_blob_init (struct capi_blob *o, const char *type, va_list ap)
 	return 0;
 }
 
+int capi_blob_init_ng (struct capi_blob *o, int type, va_list ap)
+{
+	va_list aq;
+	const struct capi_key *key;
+
+	o->buf = NULL;
+
+	va_copy (aq, ap);
+
+	switch (type) {
+	case CAPI_BLOB_BIN:
+		o->data = va_arg (aq, const void *);
+		o->len  = va_arg (aq, unsigned);
+		break;
+
+	case CAPI_BLOB_STR:
+		o->data = va_arg (aq, const char *);
+		o->len  = strlen (o->data);
+		break;
+
+	case CAPI_BLOB_KEY:
+		key = va_arg (aq, const struct capi_key *);
+
+		if (key->type != CAPI_KEY_RAW)
+			return 0;
+
+		o->len  = key->raw.len;
+		o->data = key->raw.data;
+		break;
+
+	case CAPI_BLOB_HEX:
+		o->data = va_arg (aq, const char *);
+		o->len  = hex_get_len (o->data);
+
+		if ((o->buf = malloc (o->len)) == NULL)
+			return 0;
+
+		o->data = hex_read (o->data, o->buf);
+		break;
+
+	default:
+		return 0;
+	}
+
+	va_copy (ap, aq);
+	return 1;
+}
+
 void capi_blob_fini (struct capi_blob *o)
 {
 	if (o->buf == NULL)

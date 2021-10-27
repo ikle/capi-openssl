@@ -12,6 +12,14 @@
 #include <stdarg.h>
 #include <stddef.h>
 
+enum capi_blob_type {
+	CAPI_BLOB_BIN	= 0x10,
+	CAPI_BLOB_STR	= 0x11,
+	CAPI_BLOB_KEY	= 0x12,
+	CAPI_BLOB_HEX	= 0x13,
+	CAPI_BLOB_B64	= 0x14,
+};
+
 struct capi_blob {
 	void *buf;
 	const void *data;
@@ -19,6 +27,7 @@ struct capi_blob {
 };
 
 int  capi_blob_init (struct capi_blob *o, const char *type, va_list ap);
+int  capi_blob_init_ng (struct capi_blob *o, int type, va_list ap);
 void capi_blob_fini (struct capi_blob *o);
 
 #endif  /* CAPI_BLOB_H */
