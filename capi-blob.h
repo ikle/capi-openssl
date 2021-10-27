@@ -26,8 +26,7 @@ struct capi_blob {
 	size_t len;
 };
 
-int  capi_blob_init (struct capi_blob *o, const char *type, va_list ap);
-int  capi_blob_init_ng (struct capi_blob *o, int type, va_list ap);
+int  capi_blob_init (struct capi_blob *o, int type, va_list ap);
 void capi_blob_fini (struct capi_blob *o);
 
 #endif  /* CAPI_BLOB_H */

@@ -51,50 +51,7 @@ static void *hex_read (const char *p, void *to)
 	return to;
 }
 
-int capi_blob_init (struct capi_blob *o, const char *type, va_list ap)
-{
-	const struct capi_key *key;
-
-	o->buf = NULL;
-
-	if (strcmp (type, "bin") == 0) {
-		o->data = va_arg (ap, const void *);
-		o->len  = va_arg (ap, unsigned);
-		return 1;
-	}
-
-	if (strcmp (type, "hex") == 0) {
-		o->data = va_arg (ap, const char *);
-		o->len  = hex_get_len (o->data);
-
-		if ((o->buf = malloc (o->len)) == NULL)
-			return -1;
-
-		o->data = hex_read (o->data, o->buf);
-		return 1;
-	}
-
-	if (strcmp (type, "key") == 0) {
-		key = va_arg (ap, const struct capi_key *);
-
-		if (key->type != CAPI_KEY_RAW)
-			return 0;
-
-		o->len  = key->raw.len;
-		o->data = key->raw.data;
-		return 1;
-	}
-
-	if (strcmp (type, "str") == 0) {
-		o->data = va_arg (ap, const char *);
-		o->len  = strlen (o->data);
-		return 1;
-	}
-
-	return 0;
-}
-
-int capi_blob_init_ng (struct capi_blob *o, int type, va_list ap)
+int capi_blob_init (struct capi_blob *o, int type, va_list ap)
 {
 	va_list aq;
 	const struct capi_key *key;

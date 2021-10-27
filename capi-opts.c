@@ -52,7 +52,7 @@ int capi_set_opts (void *o, const struct capi_opt *opts, size_t n, va_list ap)
 
 		b = o + opt->offset;
 
-		if (!capi_blob_init_ng (b, opt->type, aq))
+		if (!capi_blob_init (b, opt->type, aq))
 			return 0;  /* error */
 	}
 
