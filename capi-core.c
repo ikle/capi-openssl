@@ -40,7 +40,7 @@ struct capi *capi_alloc (const char *prov, const char *type, const char *name)
 
 	o->type    = type;
 	o->name    = name;
-	o->key     = type != NULL ? capi_key_alloc (o, type, name) : NULL;
+	o->key     = type != NULL ? capi_key_alloc (o, type, name, NULL) : NULL;
 	o->flash   = NULL;
 	o->chain   = NULL;
 

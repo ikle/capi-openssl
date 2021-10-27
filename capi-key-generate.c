@@ -18,7 +18,7 @@ struct param {
 	EVP_PKEY *params;
 };
 
-static int param_init (struct param *o, const char *type)
+static int param_init (struct param *o, const char *type, va_list ap)
 {
 	o->params = NULL;
 
@@ -78,12 +78,12 @@ static int param_init_keygen (struct param *o, EVP_PKEY_CTX *c)
 	return 1;
 }
 
-static
-int param_init_params (struct param *o, struct capi *capi, const char *type)
+static int param_init_params (struct param *o, struct capi *capi,
+			      const char *type, va_list ap)
 {
 	EVP_PKEY_CTX *c;
 
-	if (!param_init (o, type))
+	if (!param_init (o, type, ap))
 		return 0;
 
 	if ((c = EVP_PKEY_CTX_new_id (o->type, capi->engine)) == NULL)
@@ -100,13 +100,13 @@ no_init:
 	return 0;
 }
 
-static EVP_PKEY *capi_gen_key (struct capi *o, const char *type)
+static EVP_PKEY *capi_gen_key (struct capi *o, const char *type, va_list ap)
 {
 	struct param p;
 	EVP_PKEY *key = NULL;
 	EVP_PKEY_CTX *c;
 
-	if (!param_init_params (&p, o, type))
+	if (!param_init_params (&p, o, type, ap))
 		return NULL;
 
 	if ((c = EVP_PKEY_CTX_new (p.params, o->engine)) == NULL)
@@ -127,7 +127,8 @@ no_ctx:
 	return NULL;
 }
 
-struct capi_key *capi_key_generate (struct capi *capi, const char *type)
+struct capi_key *capi_key_generate (struct capi *capi, const char *type,
+				    va_list ap)
 {
 	struct capi_key *o;
 
@@ -137,7 +138,7 @@ struct capi_key *capi_key_generate (struct capi *capi, const char *type)
 	o->capi = capi;
 	o->type = CAPI_KEY_PKEY;
 
-	if ((o->pkey = capi_gen_key (capi, type)) == NULL)
+	if ((o->pkey = capi_gen_key (capi, type, ap)) == NULL)
 		goto no_pkey;
 
 	return o;

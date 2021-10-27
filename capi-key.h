@@ -14,6 +14,8 @@
 #include <capi/core.h>
 #include <openssl/evp.h>
 
+#include "capi-opts.h"
+
 enum capi_key_type {
 	CAPI_KEY_RAW,
 	CAPI_KEY_PKEY,
@@ -33,7 +35,7 @@ struct capi_key {
 	};
 };
 
-struct capi_key *capi_key_generate (struct capi *o, const char *type);
+struct capi_key *capi_key_generate (struct capi *o, const char *type, va_list);
 struct capi_key *capi_key_load (struct capi *o, const char *name);
 struct capi_key *capi_key_raw  (struct capi *o, size_t len);
 

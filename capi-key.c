@@ -36,7 +36,7 @@ capi_key_alloc_va (struct capi *capi, const char *type, va_list ap)
 	if (strcmp (type, "ref") == 0)
 		return capi_key_load (capi, va_arg (ap, const char *));
 
-	return capi_key_generate (capi, type);
+	return capi_key_generate (capi, type, ap);
 }
 
 struct capi_key *capi_key_alloc (struct capi *capi, const char *type, ...)
